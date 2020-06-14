@@ -12,7 +12,7 @@ class sum():
         # NASD: NASDAQ
         # NYSE: NYSE
         # https://oic.ivolatility.com/oic_options.j;jsessionid=bOxhYZXCIBEe?ticker=AMD%3ANASDAQ&R=1
-        for password in ['a4aVeOaOsH97','bOxhYZXCIBEe']:
+        for password in ['a4aVeOaOsH97','bOxhYZXCIBEe','bnvKABxYIAee']:
             for exchange in ['NYSE','NYSEAN','NASDAQ','NYSEArca']:
                 url = 'https://oic.ivolatility.com/oic_options.j;jsessionid=%s?ticker=%s3A%s&R=1'%(password,stock_nam+ '%',exchange)
 
@@ -103,7 +103,14 @@ class sum():
         IV={'call':IV_call_curr,'put':IV_put_curr,'mean':IV_index_mean_curr}
 
         time.sleep(0.05)
-        return HV, IV, HV_n, IV_n  # HV/IV : current, HV_n/IV_n : normalized one year
+        #=======build dict from list
+        list_input=['HV','IV','HV_n','IV_n']
+        dict_input={}
+        for name in list_input:
+            dict_input[name]=locals()[name]
+        dict_sum=dict_input
+
+        return dict_sum # HV/IV : current, HV_n/IV_n : normalized one year
 
 # if __name__ == '__main__':
 #     sum().IV_HV('TDOC')

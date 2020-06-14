@@ -7,7 +7,7 @@ import yfinance as yf # option https://aroussi.com/post/python-yahoo-finance
 import pandas as pd
 
 class sum():
-    def Stock_single_no_data(self, stock_TW):
+    def Stock_price(self, stock_TW):
 
         filepath=os.getcwd() + '\\stock_temp'
         if not os.path.isdir(filepath):
