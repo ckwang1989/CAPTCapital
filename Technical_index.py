@@ -9,8 +9,8 @@ import pandas as pd
 class sum():
     def MACD_weekly_check(self, df, stock_name, MA_day, EMA_day, period, back_ornot):
         # back_ornot=1
-        if back_ornot==1:
-            EMA_day=EMA_day*10  # 20 year    
+        # if back_ornot==1:
+        #     EMA_day=EMA_day*10  # 20 year  
     #==dim array
         MA5_val_sum=[0, 0, 0, 0]
         MA4_val_sum=[0, 0, 0, 0]
@@ -146,6 +146,20 @@ class sum():
         dict_flag_all=[]
     #===loop start
         flag_error=0
+
+        if back_ornot==0:
+            EMA5_Volum_criteria=(10)*period
+            MA5_base_criteria=(10)*period
+            MA40_base_criteria=(121)*period
+            sto_criteria=(12+3+1+(b-100))*period
+            ATR_criteria=(17)*period
+        else:
+            EMA5_Volum_criteria=9999999999
+            MA5_base_criteria=9999999999
+            MA40_base_criteria=9999999999
+            sto_criteria=9999999999
+            ATR_criteria=9999999999
+
         while Start<=row_n:
             flag_error=flag_error+1
             if flag_error>row_n+100: # avoid infiniti loop, then lost worker
@@ -196,7 +210,7 @@ class sum():
                     #=====put adata into array for record
 
                 #===sto %K
-                    if row_n-Start<=(12+3+1+(b-100))*period: #+(b-100)
+                    if row_n-Start<=sto_criteria: #(12+3+1+(b-100))*period: #+(b-100)
                         #there are 16 keys in dict for record highest/lowest
                         if period==1:
                             max_dict[flag_max_min]=df['High'][int(Start)]
@@ -272,8 +286,8 @@ class sum():
                         except:
                             pass
 
-                #===EMA5-Volume	/ sample		
-                    if row_n-Start<=(10)*period:	
+                #===EMA5-Volume	/ sample	
+                    if row_n-Start<=EMA5_Volum_criteria: #(10)*period:	
                         
                         temp_V_MA5_d[temp_V_MA5]='%s,%s'%(str(df['Volume'][int(Start)]),str(Start))
                         precent_Vol=float(temp_V_MA5_d[len(temp_V_MA5_d)-1].split(',',2)[0])  # use for backtest
@@ -295,8 +309,8 @@ class sum():
                         except:
                             V_MA5_val_sum=[0, 0, 0, 0]      
 
-                #===MA5-base close				
-                    if row_n-Start<=(10)*period:	
+                #===MA5-base close			
+                    if row_n-Start<=MA5_base_criteria: #(10)*period:	
                         
                         temp_0[temp_1]='%s,%s'%(str(df['Close'][int(Start)]),str(Start))
                         temp_1=temp_1+1
@@ -316,7 +330,8 @@ class sum():
                                 MA4_AVG_dict[flag_MA4]=round(float(MA4)/4,2)
                                 MA4=float(MA4)-MA5_AVG_dict[flag_MA5-1-3]
                                 flag_MA4=flag_MA4+1
-
+                        # if Start==10139:
+                        #     temp=1
                         try:
                             MA5_val_len=len(MA5_AVG_dict)
                             MA5_val_sum=[MA5_AVG_dict[MA5_val_len-1], MA5_AVG_dict[MA5_val_len-2], MA5_AVG_dict[MA5_val_len-3], MA5_AVG_dict[MA5_val_len-4]] #daily_ok
@@ -334,8 +349,9 @@ class sum():
                     #     temp_2=temp_3[Start_flag40]
                     #     temp_3=MA40_AVG_dict[len_40-1]
                     
-                #===MA40-base close				
-                    if row_n-Start<=(121)*period:   #row_n-Start<=(121)*period
+                #===MA40-base close		
+
+                    if row_n-Start<=MA40_base_criteria:#(121)*period:   
                         temp_3[temp_4]='%s,%s'%(str(df['Close'][int(Start)]),str(Start))
                         temp_4=temp_4+1
                         # MA40 = float(MA40) + df['Close'][int(Start)]
@@ -349,7 +365,7 @@ class sum():
                         if flag_MA48>=40:
                             # MA40_minus_f=int(temp_3[Start_flag40].split(',',2)[1])
                             # MA40_AVG_dict[flag_MA40]=round(float(MA40)/40,2)
-                            MA40_AVG_dict[flag_MA40]=MA40
+                            MA40_AVG_dict[flag_MA40]=round(MA40,2)
                             # MA40=float(MA40)-df['Close'][int(Start-39)]
                             MA40=float(MA40)-MA40_minus/(40*(40+1)/2)
                             # temp_1234=df['Close'][int(MA40_minus_f)] 
@@ -364,7 +380,7 @@ class sum():
                             #===MA80-base MA40
                             if len(MA40_AVG_dict)>=80:
                                 # MA80_AVG_dict[flag_MA80]=round(float(MA80)/80,2)
-                                MA80_AVG_dict[flag_MA80]=MA80
+                                MA80_AVG_dict[flag_MA80]=round(MA80,2)
                                 # MA80=float(MA80)-MA40_AVG_dict[flag_MA40-1-79
                                 MA80=float(MA80)-MA80_minus/(80*(80+1)/2)
                                 MA80_minus=float(MA80_minus)-MA40_AVG_dict[flag_MA40-1-79]
@@ -393,7 +409,7 @@ class sum():
                         pass
 
                 #====ATR====
-                    if row_n-Start<(17)*period:
+                    if row_n-Start<ATR_criteria: #(17)*period:
                         close_n_1_ATR=df['Close'][int(pre_Start)]
                         # TR=MAX(high-low,ABS(high-close_n-1),ABS(close_n-1-low))
                         high_ATR=df['High'][int(Start)]
@@ -672,7 +688,7 @@ class sum():
         for key in dict_back_all:
             trigger= trigger  +  key + ','
         trigger={'trigger':trigger}
-        # dict_back_all_obereved=self.dict_find(dict_back_all,25, 'Qa/Ma') # 不指定QM, 輸入/
+        dict_back_all_obereved=self.dict_find(dict_back_all,26, 'Qa/Ma') # 不指定QM, 輸入/
         #=======================================check end record
         if back_ornot==back_en:
             #========save backtest result to csv================
@@ -736,21 +752,6 @@ class sum():
         latest_data_MACD[3]=per_DIF[0]#latest DIF%
         latest_data_MACD[4]=DIF_per_last_status
 
-        # MA5,4,40,80
-        MA5_val_sum=[MA5_AVG_dict[6], MA5_AVG_dict[5], MA5_AVG_dict[4], MA5_AVG_dict[3]] #daily_ok
-        # MA5_AVG_dict #6
-        MA4_val_sum=[MA4_AVG_dict[3], MA4_AVG_dict[2], MA4_AVG_dict[1], MA4_AVG_dict[0]] #daily_ok
-        # MA4_AVG_dict #3
-        try:
-            MA40_val_sum=[MA40_AVG_dict[82], MA40_AVG_dict[81], MA40_AVG_dict[80], MA40_AVG_dict[79]] #daily_ok
-            # MA40_AVG_dict #82
-            MA80_val_sum=[MA80_AVG_dict[3], MA80_AVG_dict[2], MA80_AVG_dict[1], MA80_AVG_dict[0]] #daily_ok
-            # MA80_AVG_dict #3
-        except:
-            MA40_val_sum=[0, 0, 0,0] #daily_ok
-            # MA40_AVG_dict #82
-            MA80_val_sum=[0, 0, 0,0] #daily_ok
-            # MA80_AVG_dict #3
         MA5_analy=self.status_analysis(MA5_val_sum)
         MA4_analy=self.status_analysis(MA4_val_sum)
         MA40_analy=self.status_analysis(MA40_val_sum)
@@ -766,8 +767,11 @@ class sum():
         ATR_avg_sum=[list_ATR[len(list_ATR)-1], list_ATR[len(list_ATR)-2], list_ATR[len(list_ATR)-3], list_ATR[len(list_ATR)-4]] #daily_ok
         ATR_avg_F=self.status_analysis(ATR_avg_sum) #daily_ok
 
+        V_MA5_val_sum
+        precent_Vol
+
         #=======build dict from list
-        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','EMA13_result','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','trigger']
+        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','EMA13_result','D_per_a','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','precent_Vol','V_MA5_val_sum','trigger']
         dict_input={}
         for name in list_input:
             dict_input[name]=locals()[name]
@@ -1297,5 +1301,5 @@ class sum():
 
 # if __name__ == '__main__':
 #     df= sum().Stock_single_no_data('AMD')
-#     sum().MACD_weekly_check(df,'AMD', 26, 570, period=1, back_ornot=0) # get daily data_570days
+#     sum().MACD_weekly_check(df,'AMD', 26, 570*1, period=1, back_ornot=0) # get daily data_570days
 #     sum().MACD_weekly_check(df,'AMD', 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
