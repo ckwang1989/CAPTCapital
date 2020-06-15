@@ -11,7 +11,7 @@ def main():
     df=A.Stock_price(Stock_name)
     
     daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=1, back_ornot=0) # get daily data_570days
-    daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
+    weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
 
     IV_HV_dict=G.IV_HV(Stock_name)
 

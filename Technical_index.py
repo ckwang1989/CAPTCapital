@@ -394,11 +394,15 @@ class sum():
 
                 #====ATR====
                     if row_n-Start<(17)*period:
-                        if row_n-Start==(17)*period:
-                            close_n_1_ATR=df['Close'][int(Start)]
+                        close_n_1_ATR=df['Close'][int(pre_Start)]
                         # TR=MAX(high-low,ABS(high-close_n-1),ABS(close_n-1-low))
                         high_ATR=df['High'][int(Start)]
                         low_ATR=df['Low'][int(Start)]
+                        for check_HL in range(0,(Start-pre_Start)): # for weekly to find highest/lowest price during a week
+                            if df['High'][int(Start-check_HL)]>high_ATR and period>1:
+                                high_ATR=df['High'][int(Start-check_HL)]
+                            if df['Low'][int(Start-check_HL)]<low_ATR and period>1:
+                                low_ATR=df['Low'][int(Start-check_HL)]
                         close_n_ATR=df['Close'][int(Start)]
                         # close_n_1_ATR=df['Close'][int(Start-1*period)]
                         TR=max(high_ATR-low_ATR,abs(high_ATR-close_n_1_ATR),abs(close_n_1_ATR-low_ATR))
@@ -412,7 +416,6 @@ class sum():
                             list_ATR[ATR_avg]=round(TR_sum/14,2)
                             TR_sum=TR_sum-list_TR[TR_F-14]
                             ATR_avg=ATR_avg+1
-
 
                 #========backtesting
                     back_en=1 # 
@@ -638,8 +641,6 @@ class sum():
 
             #===loop step
                 #====for ATE
-                close_n_1_ATR=df['Close'][int(Start)]
-
                 pre_Start=Start # for sto
                 if Start==row_n:
                     break
