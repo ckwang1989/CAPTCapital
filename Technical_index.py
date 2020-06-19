@@ -7,10 +7,76 @@ import yfinance as yf # option https://aroussi.com/post/python-yahoo-finance
 import pandas as pd
 
 class sum():
-    def MACD_weekly_check(self, df, stock_name, MA_day, EMA_day, period, back_ornot):
+
+    def dict_search(self, key_T,weekly_BT): # 二分法搜尋
+
+        flag_check=int(weekly_BT[0].split(',')[2])
+        dict_0={'0':0,'1':0,'2':0,'3':0}
+        if flag_check >key_T:
+            return dict_0, dict_0
+
+        M40_weekly_value={}
+        M80_weekly_value={}
+        temp=[]
+        low=0
+        middle=int((len(weekly_BT)-1)/2)
+        high=len(weekly_BT)-1
+        while 1>0:
+            flag_check=int(weekly_BT[middle].split(',')[2])
+            if flag_check >=key_T:
+                high=middle
+                middle=int((middle+low)/2) # find middle                
+            if flag_check <key_T:
+                low=middle
+                middle=int((high+middle)/2) # find middle
+            if middle-low==1:
+                flag_check=int(weekly_BT[middle].split(',')[2])
+                if flag_check >= key_T:
+                    if low>3:
+                        flag=4
+                    else:
+                        flag=1 # if low=0, weekly[low] will be error
+                    for i in range(0,flag):
+                        M40_weekly_value[i]=float(weekly_BT[low-i].split(',')[0])
+                        M80_weekly_value[i]=float(weekly_BT[low-i].split(',')[1])
+                    break
+            if high-middle==1:
+                flag_check=int(weekly_BT[middle].split(',')[2])
+                if flag_check <= key_T:
+                    if middle>3:
+                        flag=4
+                    else:
+                        flag=1 # if low=0, weekly[low] will be error
+                    for i in range(0,flag):
+                        M40_weekly_value[i]=float(weekly_BT[middle-i].split(',')[0])
+                        M80_weekly_value[i]=float(weekly_BT[middle-i].split(',')[1])      
+                    break              
+
+        return M40_weekly_value, M80_weekly_value
+
+    def bollinger_bands(self, df,row,lookback, numsd):
+        df = df['Close'].iloc[row-(lookback-1):row+1] # only get lookback array
+        #df = df['Close']
+        rolling_mean = df.rolling(window=lookback).mean() #,center=False
+        rolling_mean = df.rolling(window=lookback).mean() #,center=False
+        rolling_std = df.rolling(window=lookback).std() #,center=False
+        upper_band = rolling_mean + numsd*rolling_std
+        lower_band = rolling_mean - numsd*rolling_std
+
+        close=df[row]
+        mean=round(rolling_mean[row],2)
+        upper=round(upper_band[row],2)
+        lower=round(lower_band[row],2)
+
+        upper_per=round((upper-close)/close*100,2)
+        lower_per=round((close-lower)/close*100,2)
+
+        return upper_per,lower_per,mean,upper,lower
+
+    def MACD_weekly_check(self, df, stock_name, MA_day, EMA_day, period, back_ornot, weekly_BT):
+        back_en=1 # 
+        # upper_per,lower_per,mean,upper,lower=self.bollinger_bands(df,9000,20,2)
         # back_ornot=1
-        # if back_ornot==1:
-        #     EMA_day=EMA_day*10  # 20 year  
     #==dim array
         MA5_val_sum=[0, 0, 0, 0]
         MA4_val_sum=[0, 0, 0, 0]
@@ -20,6 +86,7 @@ class sum():
 
         OSC_result=[0, 0, 0, 0]
         DIF_result=[0, 0, 0, 0]
+        DIF_result_dict={}
         EMA13_result=[0, 0, 0, 0]
         per_DIF=[0, 0, 0, 0]
         latest_data_MACD=[0, 0, 0, 0, 0] #'DIF': 0,'DEM': 0,'OSC': 0,'MACD%': 0,'MACD%_s': 0
@@ -31,22 +98,14 @@ class sum():
         MA4_AVG_dict={}
         MA40_AVG_dict={}
         MA80_AVG_dict={}
+        MA40_Weekly_BT={}
+        MA80_Weekly_BT={}
+        MA_40_80_Weekly_BT={}
         row_n =int(len(df))-1
         a = MA_day
         b = EMA_day
 
-        #===RSI
-        RSI_gain=0
-        RSI_loss=0
-        RSI_result=[0, 0, 0, 0]
-        RSI_days=13
-        RSI_days_flasg=RSI_days
-        change_dict={}
-        RSI_dict={}
-
         pre_Start=0
-
-
         sum_MA = 0
         Start_MA = row_n - (b + 1) * period
         if Start_MA<0:
@@ -64,7 +123,15 @@ class sum():
         #==============check Week=5?
         if period>1:
             Start_MA = self.Week_check(df, Start,row_n)
-        #==============check Week=5?		
+    #===RSI
+        RSI_gain=0
+        RSI_loss=0
+        RSI_result=[0, 0, 0, 0]
+        RSI_days=13
+        RSI_days_flasg=RSI_days
+        change_dict={}
+        RSI_dict={}
+    #==============check Week=5?		
         EMA_n_1_12=0
         EMA_n_1_13=0
         EMA_n_1_26=0
@@ -92,7 +159,7 @@ class sum():
 
         n40=39 # weight MA40
         n80=79 # weight MA80
-        #========================Volume
+    #========================Volume
         V_EMA5=0
         flag_V_EA5=0
         flag_V_EMA5=0
@@ -103,68 +170,80 @@ class sum():
         temp_V_MA5=0
 
         V_EMA5_AVG_dict={}
-        #=======================record value of minus MA5
+    #=======================record value of minus MA5
         Start_flag5=0 # for MA5
         MA5_minus_f=0 # for ma5
         temp_0={}
         temp_1=0
-        #=======================record value of minus: MA40
+    #=======================record value of minus: MA40
         Start_flag40=0 # for MA40
         MA40_minus_f=0 # for ma40
         temp_3={}
         temp_4=0	
         # =============deviate use
-        #=============OSC_dec
+    #=============OSC_dec
         OSC_dev={} # record V
         OSC_dev_result={}
         OSC_Backtest=0
         price_OSC_dev={} # record V of price
         price_OSC_dev_result={}
-        #=============%D_dec
+    #=============%D_dec
         D_dev={} # record V
         D_dev_result={}
         D_Backtest=0
         price_D_dev={} # record V of price
         price_D_dev_result={}
-        #=============RSI_dec
+    #=============RSI_dec
         RSI_dev={} # record V
         RSI_dev_result={}
         RSI_Backtest=0
         price_RSI_dev={} # record V of price
         price_RSI_dev_result={} 
-        #======ATR===
+    #======ATR===
         list_TR=[]
         TR_F=0
         TR_sum=0
         list_ATR=[]
         ATR_avg=0
-        #=====backtesting
+
+    #=====backtesting
         total_lookup=25
         dict_back_all={}
         dict_flag_end_record_buy={} # for last one record
         dict_flag_end_record_sell={} # for last one record
         dict_flag_all=[]
+        # if back_ornot==1 and period==1:
+            # MA40_AVG_dict_weekly=weekly_BT[0]
+            # MA80_AVG_dict_weekly=weekly_BT[1]
+            # start=10150
+            # M40_weekly_value, M80_weekly_value=self.dict_search(start,weekly_BT)
+
     #===loop start
         flag_error=0
 
         if back_ornot==0:
+            DIF_criteria=90
             EMA5_Volum_criteria=(10)*period
             MA5_base_criteria=(10)*period
             MA40_base_criteria=(121)*period
             sto_criteria=(12+3+1+(b-100))*period
             ATR_criteria=(17)*period
         else:
+            DIF_criteria=9999999999
             EMA5_Volum_criteria=9999999999
             MA5_base_criteria=9999999999
             MA40_base_criteria=9999999999
             sto_criteria=9999999999
             ATR_criteria=9999999999
-
+        minus_dif=0
         while Start<=row_n:
             flag_error=flag_error+1
             if flag_error>row_n+100: # avoid infiniti loop, then lost worker
                 print('tek error')
                 break
+            if back_ornot==1 and period==1: # get weekly MA40 & MA80
+                M40_weekly_value, M80_weekly_value=self.dict_search(Start,weekly_BT)
+
             try:
                 nan_check=df['Close'][int(Start)]
                 if nan_check==nan_check:
@@ -194,7 +273,23 @@ class sum():
                     DIF_result[3]=DIF_result[2]
                     DIF_result[2]=DIF_result[1]
                     DIF_result[1]=DIF_result[0]
-                    DIF_result[0]=DIF
+                    DIF_result[0]=round(DIF,2)
+
+                    #=======DIF percentage  90交易日的DIF百分比
+                    if row_n-Start<=DIF_criteria:
+                        DIF_result_dict[len(DIF_result_dict)+minus_dif]=round(DIF,2)
+                        if len(DIF_result_dict)>=90:                       
+                            y={key: rank for rank, key in enumerate(sorted(DIF_result_dict, key=DIF_result_dict.get, reverse=False),1)}
+                            y_L=90+minus_dif-1
+                            per_DIF[0]=round(y[y_L]/90*100,2)  #latest DIF%
+                            per_DIF[1]=round(y[y_L-1]/90*100,2)
+                            per_DIF[2]=round(y[y_L-2]/90*100,2)
+                            per_DIF[3]=round(y[y_L-3]/90*100,2)
+
+                            del DIF_result_dict[minus_dif]
+                            minus_dif=minus_dif+1
+                            if minus_dif==87:
+                                temp=1
 
                     EMA_12[i]=DIF # record DIF for % caculation
 
@@ -366,6 +461,8 @@ class sum():
                             # MA40_minus_f=int(temp_3[Start_flag40].split(',',2)[1])
                             # MA40_AVG_dict[flag_MA40]=round(float(MA40)/40,2)
                             MA40_AVG_dict[flag_MA40]=round(MA40,2)
+                            # if period==5:
+                            #     MA40_Weekly_BT[flag_MA40]=str(round(MA40,2)) + ',' +  str(Start) # used for weekly backtest        
                             # MA40=float(MA40)-df['Close'][int(Start-39)]
                             MA40=float(MA40)-MA40_minus/(40*(40+1)/2)
                             # temp_1234=df['Close'][int(MA40_minus_f)] 
@@ -396,6 +493,12 @@ class sum():
                             MA80_val_sum=[MA80_AVG_dict[len_80-1], MA80_AVG_dict[len_80-2], MA80_AVG_dict[len_80-3], MA80_AVG_dict[len_80-4]] #daily_ok
                         except:
                             MA80_val_sum=[0, 0, 0, 0] #daily_ok
+
+                        if period==5: # for backtest, record weekly data into daily
+                            MA_40_80_Weekly_BT[flag_MA80]=str(round(MA40_val_sum[0],2)) + ',' + str(round(MA80_val_sum[0],2)) + ',' +  str(Start)  # used for weekly backtest
+                            # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[2]
+                            # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[1]
+                            # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[0]
 
                 #====deviate check
                     try:                  
@@ -433,15 +536,22 @@ class sum():
                             TR_sum=TR_sum-list_TR[TR_F-14]
                             ATR_avg=ATR_avg+1
 
+                #======BB=====
+                    if period==1:
+                        if back_ornot==back_en or back_ornot==1: 
+                            upper_per,lower_per,mean,upper,lower=self.bollinger_bands(df,Start,20,2)
                 #========backtesting
-                    back_en=1 # 
+                    
                     if back_ornot==back_en or Start>=row_n-3:  #Start==row_n: latest days check trigger event
-                        stop_per=3 #停損+/-2%
+                        stop_per_default=2 #停損+/-2%  改用當時的BB
                         back_close=df['Close'][int(Start)]
                         Date_precent=df['Date'][int(Start-1)].date() #datetime.strptime(df['Date'][int(Start)], "%Y-%m-%d").date()
-                        
-                        for Qa in range(0,2): #season
-                            if back_ornot==0: # no backtest don't check month and Q 
+                        if back_ornot==1: # no backtest only run once loop 
+                            loop_QM=1
+                        else:
+                            loop_QM=2
+                        for Qa in range(0,loop_QM): #season
+                            if back_ornot==1: # no backtest don't check month and Q 
                                 Qa=1
                             if Qa==0: # 分開統計
                                 if Date_precent.month>=1 and Date_precent.month<=3:
@@ -454,8 +564,8 @@ class sum():
                                     Q_n='Q4'
                             else: # total
                                 Q_n='Qa'
-                            for Ma in range(0,2): #Month
-                                if back_ornot==0: # no backtest don't check month and Q 
+                            for Ma in range(0,loop_QM): #Month
+                                if back_ornot==1: # no backtest don't check month and Q   # back_ornot==1 for development@@@@
                                     Ma=1
                                 if Ma==0: # 分開統計
                                     M_n='M%s'%Date_precent.month
@@ -621,7 +731,7 @@ class sum():
                                     if '/Qa/Ma' in sum_check and flag_V_EMA5>=5:
                                         for vol_dev in range(0,24):
                                             try:
-                                                if precent_Vol >=precent_V_EMA5*1.5 and globals()['count_day_%s/Qa/Ma'%(vol_dev+1)]>0 and globals()['count_day_%s/Qa/Ma'%(vol_dev+1)]<=5: #
+                                                if precent_Vol >=precent_V_EMA5*2 and globals()['count_day_%s/Qa/Ma'%(vol_dev+1)]>0 and globals()['count_day_%s/Qa/Ma'%(vol_dev+1)]<=5: #
                                                     num=str('25%s'%sum_check + '/Vol-%s'%(vol_dev+1)) 
                                                     bull_bear_check=globals()['bear_bull_%s/Qa/Ma'%(vol_dev+1)]
                                                     dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
@@ -641,6 +751,99 @@ class sum():
                                         bull_bear_check='bear'
                                         first_close_back=back_close # 非背離 紀錄當下 close
                                         dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==28. FAvg40 cross Favg80 up and weekly_MA40>weekly_MA80, bull
+                                    if  MA40_val_sum[0]>MA80_val_sum[0] and MA40_val_sum[1]<MA80_val_sum[1] and M40_weekly_value[0]>M80_weekly_value[0]: #
+                                        num=str('28%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==29. FAvg40 cross Favg80 down and weekly_MA40<weekly_MA80, bear
+                                    if  MA40_val_sum[0]<MA80_val_sum[0] and MA40_val_sum[1]>MA80_val_sum[1] and M40_weekly_value[0]<M80_weekly_value[0]: #
+                                        num=str('29%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==30. 不分市場&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),W:白>藍 D:白(NA斜率)>藍, bull  and per_DIF[0]>per_DIF[1]
+                                    if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('30%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==31. 不分市場&反三合一(max(S)>=80 and S>60 and S<max(4days)*0.97 and M% >=80 and M:negative and G cross R down),W:白>藍 D:白(NA斜率)>藍, bear  and per_DIF[0]<per_DIF[1]
+                                    if  max(D_per_a)>=80 and D_per_a[0]>60 and D_per_a[0]<max(D_per_a)*0.97 and per_DIF[0]>=50  and MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1]: # and MA40_val_sum[0]<MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('31%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==32. W/D牛市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),W:白>藍 D:白(NA斜率)>藍, bull  and per_DIF[0]>per_DIF[1]
+                                    if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and MA40_val_sum[0]>MA80_val_sum[0] and M40_weekly_value[0]>M80_weekly_value[0]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('32%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==33. W/D牛市&反三合一(max(S)>=80 and S>60 and S<max(4days)*0.97 and M% >=80 and M:negative and G cross R down),W:白>藍 D:白(NA斜率)>藍, bear  and per_DIF[0]<per_DIF[1]
+                                    if  max(D_per_a)>=80 and D_per_a[0]>60 and D_per_a[0]<max(D_per_a)*0.97 and per_DIF[0]>=50  and MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and MA40_val_sum[0]>MA80_val_sum[0] and M40_weekly_value[0]>M80_weekly_value[0]: # and MA40_val_sum[0]<MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('33%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==34. W/D熊市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),W:白<藍 D:白(NA斜率)<藍, bull  and per_DIF[0]>per_DIF[1]
+                                    if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and MA40_val_sum[0]<MA80_val_sum[0] and M40_weekly_value[0]<M80_weekly_value[0]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('34%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==35. W/D熊市&反三合一(max(S)>=80 and S>60 and S<max(4days)*0.97 and M% >=80 and M:negative and G cross R down),W:白<藍 D:白(NA斜率)<藍, bear  and per_DIF[0]<per_DIF[1]
+                                    if  max(D_per_a)>=80 and D_per_a[0]>60 and D_per_a[0]<max(D_per_a)*0.97 and per_DIF[0]>=50  and MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and MA40_val_sum[0]<MA80_val_sum[0] and M40_weekly_value[0]<M80_weekly_value[0]: # and MA40_val_sum[0]<MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('35%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==36. D牛市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),D:白(NA斜率)>藍, bull
+                                    if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and MA40_val_sum[0]>MA80_val_sum[0]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('36%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==37. D牛市&反三合一(max(S)>=80 and S>60 and S<max(4days)*0.97 and M% >=80 and M:negative and G cross R down),D:白(NA斜率)>藍, bear
+                                    if  max(D_per_a)>=80 and D_per_a[0]>60 and D_per_a[0]<max(D_per_a)*0.97 and per_DIF[0]>=50  and MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and MA40_val_sum[0]>MA80_val_sum[0]: # and MA40_val_sum[0]<MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('37%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==38. D熊市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),D:白(NA斜率)<藍, bull
+                                    if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and MA40_val_sum[0]<MA80_val_sum[0]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('38%s'%sum_check) 
+                                        bull_bear_check='bull'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+                                #==39. D熊市&反三合一(max(S)>=80 and S>60 and S<max(4days)*0.97 and M% >=80 and M:negative and G cross R down),D:白(NA斜率)<藍, bear
+                                    if  max(D_per_a)>=80 and D_per_a[0]>60 and D_per_a[0]<max(D_per_a)*0.97 and per_DIF[0]>=50  and MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and MA40_val_sum[0]<MA80_val_sum[0]: # and MA40_val_sum[0]<MA40_val_sum[3]
+                                        if Start>=9700:
+                                            temp=1
+                                        num=str('39%s'%sum_check) 
+                                        bull_bear_check='bear'
+                                        first_close_back=back_close # 非背離 紀錄當下 close
+                                        dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back)
+
                                 except:
                                     pass
 
@@ -650,8 +853,25 @@ class sum():
                                     num=back_i.split('_')[2]
                                     # self.debug=Start
                                     globals()['count_day_%s'%num]=globals()['count_day_%s'%num]+1 #@@
-                                    # if '26/Q2/M5' in back_i:
-                                    #     temp=1
+                                    #============================================BB set 停損=====
+                                    if period==1:
+                                        if globals()['bear_bull_%s'%num]=='bear':
+                                            if upper_per<0:
+                                                stop_per=stop_per_default
+                                            elif upper_per>=15:
+                                                stop_per=10
+                                            else:
+                                                stop_per=upper_per
+                                        else:
+                                            if lower_per<0:
+                                                stop_per=stop_per_default
+                                            elif lower_per>=15:
+                                                stop_per=10
+                                            else:
+                                                stop_per=lower_per  
+                                    else: # weekly don't care BB
+                                        stop_per=stop_per_default                                    
+                                    #============================================BB set 停損=====
                                     dict_back_all[num],globals()['flag_lookup_%s'%num],globals()['record_per_%s'%num],globals()['count_day_%s'%num]=self.back_check(num,dict_back_all[num],globals()['first_close_back_%s'%num],back_close,stop_per,globals()['count_day_%s'%num],globals()['record_per_%s'%num],globals()['bear_bull_%s'%num]) #@                     
                             # back_i=0
 
@@ -688,20 +908,39 @@ class sum():
         for key in dict_back_all:
             trigger= trigger  +  key + ','
         trigger={'trigger':trigger}
-        dict_back_all_obereved=self.dict_find(dict_back_all,26, 'Qa/Ma') # 不指定QM, 輸入/
+
+        # dict_back_all_obereved25=self.dict_find(dict_back_all,25, 'Qa/Ma') # 不指定QM, 輸入/  ,Qa/Ma
+        # dict_back_all_obereved28=self.dict_find(dict_back_all,28, 'Qa/Ma') # 不指定QM, 輸入/  ,Qa/Ma
+        # dict_back_all_obereved29=self.dict_find(dict_back_all,29, 'Qa/Ma') # 不指定QM, 輸入/  ,Qa/Ma
+        # #===不分市場
+        # dict_back_all_obereved30=self.dict_find(dict_back_all,30, 'Qa/Ma') # 正三
+        # dict_back_all_obereved31=self.dict_find(dict_back_all,31, 'Qa/Ma') # 反三
+        # #===W/D牛市
+        # dict_back_all_obereved32=self.dict_find(dict_back_all,32, 'Qa/Ma') # 正三
+        # dict_back_all_obereved33=self.dict_find(dict_back_all,33, 'Qa/Ma') # 反三
+        # #===W/D熊市
+        # dict_back_all_obereved34=self.dict_find(dict_back_all,34, 'Qa/Ma') # 正三
+        # dict_back_all_obereved35=self.dict_find(dict_back_all,35, 'Qa/Ma') # 反三
+        # #===D牛市
+        # dict_back_all_obereved36=self.dict_find(dict_back_all,36, 'Qa/Ma') # 正三
+        # dict_back_all_obereved37=self.dict_find(dict_back_all,37, 'Qa/Ma') # 反三
+        # #===D熊市
+        # dict_back_all_obereved38=self.dict_find(dict_back_all,38, 'Qa/Ma') # 正三
+        # dict_back_all_obereved39=self.dict_find(dict_back_all,39, 'Qa/Ma') # 反三
         #=======================================check end record
         if back_ornot==back_en:
             #========save backtest result to csv================
             filepath=os.getcwd() + '\\stock_temp'
             if not os.path.isdir(filepath):
                 os.mkdir(filepath)
-            dict_back_all = pd.DataFrame.from_dict(dict_back_all, orient="index")
-            dict_back_all.to_csv(filepath + '\\%s_%s.csv'%(stock_name,'BT')) # Throw away one sample record
+            dict_back_all_pd = pd.DataFrame.from_dict(dict_back_all, orient="index")
+            dict_back_all_pd.to_csv(filepath + '\\%s_%s.csv'%(stock_name,'BT')) # Throw away one sample record
             #========save backtest result to csv================
             back_j=0
             for back_i in dict_flag_all:
                 temp=int(globals()['count_day_%s'%back_i.split('_')[2]])
-                if int(globals()[back_i])!=0 and int(globals()['count_day_%s'%back_i.split('_')[2]])<5:
+                N=1000 # 找< N天內觸發
+                if int(globals()[back_i])!=0 and int(globals()['count_day_%s'%back_i.split('_')[2]])<N: 
                     try:
                         win_rate_5S=float(dict_back_all[back_i.split('_')[2]]['5S']['0'].split('/')[3])
                         Win_per_5S=abs(float(dict_back_all[back_i.split('_')[2]]['5S']['0'].split('/')[4]))
@@ -727,18 +966,8 @@ class sum():
         # 爆量(當天量>MA5*2) + 近期指數背離   @@@
         # 25. 用迴圈跑所有背離指標+2倍大量+count<=5
         # 40 天內沒有停損 考慮做sell
-        x=EMA_12
         
     #===========================================Sum===================================================		
-        # DIF_last=EMA_12[i-1]
-        # x=EMA_12
-        temp=EMA_12[i]
-        # show rank
-        y={key: rank for rank, key in enumerate(sorted(x, key=x.get, reverse=False),1)}
-        per_DIF[0]=round(y[i]/i*100,2)  #latest DIF%
-        per_DIF[1]=round(y[i-1]/i*100,2)
-        per_DIF[2]=round(y[i-2]/i*100,2)
-        per_DIF[3]=round(y[i-3]/i*100,2)
         DIF_per_last_status=self.status_analysis(per_DIF)
 
         #KD
@@ -759,7 +988,7 @@ class sum():
         latest_data_MA=[MA5_analy, MA4_analy, MA40_analy, MA80_analy, self.MA_analysis(MA5_val_sum[0],MA4_val_sum[0],MA40_val_sum[0],MA80_val_sum[0])]
 
         OSC_result_F=self.status_analysis(OSC_result) #daily_ok
-        MACD_12_26=self.status_analysis(EMA13_result) #daily_ok
+        MACD_12_26=self.status_analysis(DIF_result) #daily_ok
         # final_result=self.operation_analysis(OSC_result_F,MACD_12_26) #daily_ok
 
         RSI_result_F=self.status_analysis(RSI_result) #daily_ok
@@ -769,13 +998,15 @@ class sum():
 
         V_MA5_val_sum
         precent_Vol
+        weekly_BT=MA_40_80_Weekly_BT
 
         #=======build dict from list
-        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','EMA13_result','D_per_a','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','precent_Vol','V_MA5_val_sum','trigger']
+        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','DIF_result','per_DIF','D_per_a','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','precent_Vol','V_MA5_val_sum','trigger','weekly_BT']
         dict_input={}
         for name in list_input:
             dict_input[name]=locals()[name]
         dict_sum=dict_input
+
 
         return dict_sum
 
@@ -1263,16 +1494,16 @@ class sum():
         # 9=kink: else
         
         if MA_5 > MA_4 and MA_4 > MA_40 and MA_40 > MA_80:# 	
-            result ='Bull-Big'
+            result ='Bull-Big' # 大牛
         elif MA_5 < MA_4 and MA_4 < MA_40 and MA_40 < MA_80:# 	
-            result ='Bear-Big'
+            result ='Bear-Big' # 大熊
         elif MA_40 > MA_80 and MA_5 < MA_40:# 
-            result ='Bull-small_5<40'
+            result ='Bull-small_5<40' 
         elif MA_40 < MA_80 and MA_5 > MA_40:# 	
             result ='Bear-small_5>40'
-        elif MA_40 > MA_80:# 
+        elif MA_40 > MA_80: # 小牛
             result ='Bull-small'
-        elif MA_40 < MA_80:# 	
+        elif MA_40 < MA_80: # 大熊
             result ='Bear-small'
         else:
             result ='NA'
@@ -1299,7 +1530,10 @@ class sum():
         return df
 
 
-# if __name__ == '__main__':
-#     df= sum().Stock_single_no_data('AMD')
-#     sum().MACD_weekly_check(df,'AMD', 26, 570*1, period=1, back_ornot=0) # get daily data_570days
-#     sum().MACD_weekly_check(df,'AMD', 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
+if __name__ == '__main__':
+    test_stock='INCY'
+    df= sum().Stock_single_no_data(test_stock)
+    
+    dict_r=sum().MACD_weekly_check(df,test_stock, 26, 570*10, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
+    sum().MACD_weekly_check(df,test_stock, 26, 570*10, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
+    

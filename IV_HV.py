@@ -12,7 +12,7 @@ class sum():
         # NASD: NASDAQ
         # NYSE: NYSE
         # https://oic.ivolatility.com/oic_options.j;jsessionid=bOxhYZXCIBEe?ticker=AMD%3ANASDAQ&R=1
-        for password in ['a4aVeOaOsH97','bOxhYZXCIBEe','bnvKABxYIAee','asAaERwoziH4']:
+        for password in ['bOvpXRl7ePd_']:
             for exchange in ['NYSE','NYSEAN','NASDAQ','NYSEArca']:
                 url = 'https://oic.ivolatility.com/oic_options.j;jsessionid=%s?ticker=%s3A%s&R=1'%(password,stock_nam+ '%',exchange)
 
