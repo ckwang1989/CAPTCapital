@@ -16,7 +16,7 @@ def main():
     daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
 
     # input DTE, output: std_Dev of out_BB, which include all High/Low price(DTE)
-    upper_in,lower_in,upper_out,lower_out,out_BB=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
+    BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
 
     IV_HV_dict=G.IV_HV(Stock_name)
 

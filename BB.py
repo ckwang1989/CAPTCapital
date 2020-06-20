@@ -37,8 +37,14 @@ class sum():
         upper_out=round(upper_band[row],2)
         lower_out=round(lower_band[row],2)
         out_BB=round(numsd,2)
+        #=======build dict from list
+        list_input=['upper_in','lower_in','upper_out','lower_out','out_BB']
+        dict_input={}
+        for name in list_input:
+            dict_input[name]=locals()[name]
+        dict_sum=dict_input
 
-        return upper_in,lower_in,upper_out,lower_out,out_BB
+        return dict_sum
 
 #     def Stock_single_no_data(self, stock_TW):
 
