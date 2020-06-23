@@ -8,16 +8,15 @@ import pandas as pd
 
 class sum():
     def Stock_price(self, stock_TW):
-
-        filepath=os.getcwd() + '\\stock_temp'
-        if not os.path.isdir(filepath):
-            os.mkdir(filepath)
+        folderpath = os.path.join(os.getcwd(), 'stock_temp')
+        filepath = os.path.join(folderpath, f'file_{stock_TW}.csv')
+        if not os.path.isdir(folderpath):
+            os.mkdir(folderpath)
         stock = yf.Ticker(stock_TW)
         df =stock.history(period="max")
         df=df.reset_index()
-        df.to_csv(os.getcwd() + '\\stock_temp' + '\\file_%s.csv' %stock_TW,index='Date')
+        df.to_csv(filepath, index='Date')
         return df
 
-
-# if __name__ == '__main__':
-#     df= sum().Stock_single_no_data('AMD')
+if __name__ == '__main__':
+	df= sum().Stock_single_no_data('AMD')
