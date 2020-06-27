@@ -66,23 +66,23 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
     
         }
     '''
-
     with open(config_p) as json_file: 
         condition = json.load(json_file)
 
-    if 'Bull-Big' in tech_idx['latest_data_MA'][-1]:
-        condition = condition['big_bull']
-        condition_result = copy.deepcopy(condition)
-        for strategy in condition.keys():
-            # combination contract
-            if len(strategy) > 2:
-                keys = [f'in{strategy[:2]}', f'in{strategy[2:]}', f'out{strategy[:2]}', f'out{strategy[2:]}']
-            # single contract
-            else:
-                keys = [f'in{strategy[:2]}', f'out{strategy[:2]}']
-            for k in keys:
-                tech_idxes = condition[strategy][k]
-                condition_result[strategy][k] = Strategy_excecute(tech_idxes, k, tech_idx)
+    market = tech_idx['latest_data_MA'][-1].split('_')[0]
+    condition = condition[market]
+    condition_result = copy.deepcopy(condition)
+    for strategy in condition.keys():
+        # combination contract
+        if len(strategy) > 2:
+            keys = [f'in{strategy[:2]}', f'in{strategy[2:]}', f'out{strategy[:2]}', f'out{strategy[2:]}']
+        # single contract
+        else:
+            keys = [f'in{strategy[:2]}', f'out{strategy[:2]}']
+        for k in keys:
+            tech_idxes = condition[strategy][k]
+            condition_result[strategy][k] = Strategy_excecute(tech_idxes, k, tech_idx)
+    print (condition_result)
 
 def main():
     Stock_name='AMD'
@@ -93,8 +93,6 @@ def main():
 
     daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=1, back_ornot=0) # get daily data_570days
     weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
-
-    print (daily_dict)
 
     Strategy_trigger(daily_dict)
 #    IV_HV_dict=G.IV_HV(Stock_name)

@@ -1,5 +1,5 @@
 {
-	"big_bull":
+	"Bull-Big":
 	{
 		"BC":
 		{
@@ -13,5 +13,23 @@
 			"inBC":[["Sgodown"]],
 			"outBC":[["S30down","S70up","M70up"],["f40down80"]]
 		}
+	},
+	"Bear-Big":
+	{
+
+	},
+	"Bull-small":
+	{
+		"SCBC":
+		{
+			"inSC":[["Sgodown"]],
+			"outSC":[["S30down"],["f5up4"]],
+			"inBC":[["Sgodown"]],
+			"outBC":[["S30down","S70up","M70up"],["f40down80"]]
+		}
+	},
+	"Bear-small":
+	{
+
 	}
 }
