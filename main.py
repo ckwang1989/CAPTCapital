@@ -1,78 +1,32 @@
-def Strategy_excecute(t_all, key):
-    print ('t_all: ', t_all)
-    D = {}
-    L = []
-    global_trigger = False
-    def dfs(t1):
-        tmp = []
-        print ('t1: ', t1)
-        if type(t1) == type([]):
-            local_trigger = True
-            for t in t1:
-                local_trigger = getattr(F, t)() and local_trigger
-                tmp.append({f'{t}': getattr(F, t)()})
-        else:
-            local_trigger = getattr(F, t1)()
-            tmp.append({f'{t1}': local_trigger})
-        return tmp, local_trigger
-
-    for t in t_all:
-        print ('t: ', t)
-        res, local_trigger = dfs(t)
-        L.append(res)
-        global_trigger = global_trigger or local_trigger
-    return L
-    
-class F():
-    def f40up80():
-        return True
-
-    def S80up():
-        return True
-
-    def M80up():
-        return True
-
-    def f40down80():
-        return True
-
-    def f40godown():
-        return True
-
-    def Sgodown():
-        return True
-
-    def S30down():
-        return True
-
-    def f5up4():
-        return True
-
-    def S70up():
-        return True
-
-    def M70up():
-        return True
-
-    def f5up4():
-        return True
-
 import Stock_history
 import Technical_index
 import IV_HV
+from condition import Condition as C
 
 import finviz
 import json 
 import copy
 
-'''
-def Strategy_excecute(tech_idxes):
-    res = {}
-    if len(tech_idxes) > 1:
-        return Strategy_excecute()
-    else:
-        return
-        '''
+def Strategy_excecute(t_all, key):
+    L = []
+    global_trigger = False
+    def dfs(t1):
+        tmp = []
+        if type(t1) == type([]):
+            local_trigger = True
+            for t in t1:
+                local_trigger = getattr(C, t)() and local_trigger
+                tmp.append({f'{t}': getattr(C, t)()})
+        else:
+            local_trigger = getattr(C, t1)()
+            tmp.append({f'{t1}': local_trigger})
+        return tmp, local_trigger
+
+    for t in t_all:
+        res, local_trigger = dfs(t)
+        L.append(res)
+        global_trigger = global_trigger or local_trigger
+    return [L, global_trigger]
 
 def Strategy_trigger(tech_idx, config_p='configure_file.json'):
     '''
@@ -103,16 +57,12 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
 
     with open(config_p) as json_file: 
         condition = json.load(json_file)
-    print ('\n\n\n')
-    print (condition)
 
-    in_strategies = []
-    out_strategies = []
     if True: #'Bull-Big' in tech_idx['latest_data_MA'][-1]:
         condition = condition['big_bull']
         condition_result = copy.deepcopy(condition)
         for strategy in condition.keys():
-            print ('strategy: ', strategy)
+            # combination contract
             if len(strategy) > 2:
                 in_sell_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
                 in_buy_tech_idxes = condition[strategy][f'in{strategy[2:]}']
@@ -122,14 +72,13 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
                 condition_result[strategy][f'in{strategy[2:]}'] = Strategy_excecute(in_buy_tech_idxes, f'in{strategy[2:]}')
                 condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_sell_tech_idxes, f'out{strategy[:2]}')
                 condition_result[strategy][f'out{strategy[2:]}'] = Strategy_excecute(out_buy_tech_idxes, f'out{strategy[2:]}')
+            # single contract
             else:
                 in_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
                 out_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
                 condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_tech_idxes, f'in{strategy[:2]}')
                 condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_tech_idxes, f'out{strategy[:2]}')
-
-    print (condition_result)
-
+    
 def main():
     Stock_name='AMD'
     A=Stock_history.sum()
