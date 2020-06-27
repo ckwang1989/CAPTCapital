@@ -3,21 +3,21 @@
 	{
 		"BC":
 		{
-			"inBC":["40up80"],
-			"outBC":[["40godown","S80up","M80up"],["40down80"]],
-			"inshowBC":["40up80"],
-			"outshowBC":[["40godown","S80up","M80up"],["40down80"]]
+			"inBC":["f40up80"],
+			"outBC":[["f40godown","S80up","M80up"],["f40down80"]],
+			"inshowBC":["f40up80"],
+			"outshowBC":[["f40godown","S80up","M80up"],["f40down80"]]
 		},
-		"CCS":
+		"SCBC":
 		{
 			"inSC":["Sgodown"],
-			"outSC":[["S30down"],["5up4"]],
+			"outSC":[["S30down"],["f5up4"]],
 			"inshowSC":["Sgodown"],
-			"outshowSC":[["S30down"],["5up4"]],
+			"outshowSC":[["S30down"],["f5up4"]],
 			"inBC":["Sgodown"],
-			"outBC":[["S30down","S70up","M70up"],["40down80"]],
+			"outBC":[["S30down","S70up","M70up"],["f40down80"]],
 			"inshowBC":["Sgodown"],
-			"outshowBC":[["S30down","S70up","M70up"],["40down80"]]
+			"outshowBC":[["S30down","S70up","M70up"],["f40down80"]]
 		}
 	}
 }

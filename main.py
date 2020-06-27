@@ -1,15 +1,94 @@
+'''
+def frogPosition(n, edges, time, target):
+    T = collections.defaultdict(set)
+    for u, v in edges:
+        T[u].add(v)
+        T[v].add(u)
+
+    def dfs(x, y, t, p):
+        if t < 0:
+            return 0
+        zs = [z for z in T[y] if z != x]
+        if y == target:
+            return 0 if (d and zs) else p
+        q = 1 / len(zs)
+        return sum(dfs(y, z, t-1, p*q) for z in zs)
+
+    return dfs(-1, 1, time, 1)
+    '''
+
+#t_all = [[t1, t2], [t3]]
+def Strategy_excecute(t_all):
+    print (f'{t_all}')
+    D = {}
+    global_trigger = False
+    def dfs(t1):
+        tmp = []
+        print (f'{t1}')
+        if type(t1) == type([]):
+            local_trigger = True
+            for t in t1:
+                local_trigger = getattr(F, t)() and local_trigger
+                tmp.append({f'{t}': getattr(F, t)()})
+        else:
+            local_trigger = getattr(F, t1)()
+            tmp.append({f'{t1}': local_trigger})
+        return tmp, local_trigger
+
+    for t in t_all:
+        D[t], local_trigger = dfs(t)
+        global_trigger = global_trigger or local_trigger
+    return D
+    
+class F():
+    def f40up80():
+        return True
+
+    def S80up():
+        return True
+
+    def M80up():
+        return True
+
+    def f40down80():
+        return True
+
+    def f40godown():
+        return True
+
+    def Sgodown():
+        return True
+
+    def S30down():
+        return True
+
+    def f5up4():
+        return True
+
+    def S70up():
+        return True
+
+    def M70up():
+        return True
+
+    def f5up4():
+        return True
+
 import Stock_history
 import Technical_index
 import IV_HV
 
 import finviz
 import json 
+import copy
+
 '''
-def big_bull_bc(tech_idx):
-    status_in = {'in': {'MA'}}
-    for i in range(len(tech_idx['MA40_val_sum'])-1):
-        if tech_idx['MA40_val_sum'][i] > tech_idx['MA80_val_sum'][i] and \
-        tech_idx['MA40_val_sum'][i+1] <= tech_idx['MA80_val_sum'][i+1]:
+def Strategy_excecute(tech_idxes):
+    res = {}
+    if len(tech_idxes) > 1:
+        return Strategy_excecute()
+    else:
+        return
         '''
 
 def Strategy_trigger(tech_idx, config_p='configure_file.json'):
@@ -42,11 +121,21 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
     with open(config_p) as json_file: 
         condition = json.load(json_file)
     print (condition)
-    assert False
-#    # BC進場白上跨藍
-#    if latest_data_MA[-1] == 'Bull-Big':
-#        if 
 
+    in_strategies = []
+    out_strategies = []
+    if True: #'Bull-Big' in tech_idx['latest_data_MA'][-1]:
+        condition = condition['big_bull']
+        condition_result = copy.deepcopy(condition)
+        for strategy in condition.keys():
+            if len(strategy) > 2:
+                in_sell_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
+                in_buy_tech_idxes = condition[strategy][f'in{strategy[2:]}']
+                out_sell_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
+                out_buy_tech_idxes = condition[strategy][f'out{strategy[2:]}']
+                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_sell_tech_idxes)
+                print (f'in{strategy[:2]}')
+    print (condition_result)
 
 def main():
     Stock_name='AMD'
