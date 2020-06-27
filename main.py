@@ -1,30 +1,11 @@
-'''
-def frogPosition(n, edges, time, target):
-    T = collections.defaultdict(set)
-    for u, v in edges:
-        T[u].add(v)
-        T[v].add(u)
-
-    def dfs(x, y, t, p):
-        if t < 0:
-            return 0
-        zs = [z for z in T[y] if z != x]
-        if y == target:
-            return 0 if (d and zs) else p
-        q = 1 / len(zs)
-        return sum(dfs(y, z, t-1, p*q) for z in zs)
-
-    return dfs(-1, 1, time, 1)
-    '''
-
-#t_all = [[t1, t2], [t3]]
-def Strategy_excecute(t_all):
-    print (f'{t_all}')
+def Strategy_excecute(t_all, key):
+    print ('t_all: ', t_all)
     D = {}
+    L = []
     global_trigger = False
     def dfs(t1):
         tmp = []
-        print (f'{t1}')
+        print ('t1: ', t1)
         if type(t1) == type([]):
             local_trigger = True
             for t in t1:
@@ -36,9 +17,11 @@ def Strategy_excecute(t_all):
         return tmp, local_trigger
 
     for t in t_all:
-        D[t], local_trigger = dfs(t)
+        print ('t: ', t)
+        res, local_trigger = dfs(t)
+        L.append(res)
         global_trigger = global_trigger or local_trigger
-    return D
+    return L
     
 class F():
     def f40up80():
@@ -120,6 +103,7 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
 
     with open(config_p) as json_file: 
         condition = json.load(json_file)
+    print ('\n\n\n')
     print (condition)
 
     in_strategies = []
@@ -128,13 +112,22 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
         condition = condition['big_bull']
         condition_result = copy.deepcopy(condition)
         for strategy in condition.keys():
+            print ('strategy: ', strategy)
             if len(strategy) > 2:
                 in_sell_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
                 in_buy_tech_idxes = condition[strategy][f'in{strategy[2:]}']
                 out_sell_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
                 out_buy_tech_idxes = condition[strategy][f'out{strategy[2:]}']
-                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_sell_tech_idxes)
-                print (f'in{strategy[:2]}')
+                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_sell_tech_idxes, f'in{strategy[:2]}')
+                condition_result[strategy][f'in{strategy[2:]}'] = Strategy_excecute(in_buy_tech_idxes, f'in{strategy[2:]}')
+                condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_sell_tech_idxes, f'out{strategy[:2]}')
+                condition_result[strategy][f'out{strategy[2:]}'] = Strategy_excecute(out_buy_tech_idxes, f'out{strategy[2:]}')
+            else:
+                in_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
+                out_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
+                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_tech_idxes, f'in{strategy[:2]}')
+                condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_tech_idxes, f'out{strategy[:2]}')
+
     print (condition_result)
 
 def main():
