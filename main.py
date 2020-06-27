@@ -8,6 +8,14 @@ import json
 import copy
 
 def Strategy_excecute(t_all, key):
+    '''
+    transfer the tech_idx_condition to result_flag, e.g.:
+
+    tech_idx_condition: {'BC': {'inBC': [['f40up80']], 
+                                'outBC': [['f40godown', 'S80up', 'M80up'], ['f40down80']]}
+    result_flag: {'BC': {'inBC': [[[{'f40up80': True}]], True], 
+                         'outBC': [[[{'f40godown': True}, {'S80up': True}, {'M80up': True}], [{'f40down80': True}]], True]}
+    '''
     L = []
     global_trigger = False
     def dfs(t1):
@@ -64,21 +72,14 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
         for strategy in condition.keys():
             # combination contract
             if len(strategy) > 2:
-                in_sell_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
-                in_buy_tech_idxes = condition[strategy][f'in{strategy[2:]}']
-                out_sell_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
-                out_buy_tech_idxes = condition[strategy][f'out{strategy[2:]}']
-                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_sell_tech_idxes, f'in{strategy[:2]}')
-                condition_result[strategy][f'in{strategy[2:]}'] = Strategy_excecute(in_buy_tech_idxes, f'in{strategy[2:]}')
-                condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_sell_tech_idxes, f'out{strategy[:2]}')
-                condition_result[strategy][f'out{strategy[2:]}'] = Strategy_excecute(out_buy_tech_idxes, f'out{strategy[2:]}')
+                keys = [f'in{strategy[:2]}', f'in{strategy[2:]}', f'out{strategy[:2]}', f'out{strategy[2:]}']
             # single contract
             else:
-                in_tech_idxes = condition[strategy][f'in{strategy[:2]}']                
-                out_tech_idxes = condition[strategy][f'out{strategy[:2]}']                
-                condition_result[strategy][f'in{strategy[:2]}'] = Strategy_excecute(in_tech_idxes, f'in{strategy[:2]}')
-                condition_result[strategy][f'out{strategy[:2]}'] = Strategy_excecute(out_tech_idxes, f'out{strategy[:2]}')
-    
+                keys = [f'in{strategy[:2]}', f'out{strategy[:2]}']
+            for k in keys:
+                tech_idxes = condition[strategy][k]
+                condition_result[strategy][k] = Strategy_excecute(tech_idxes, k)
+
 def main():
     Stock_name='AMD'
     A=Stock_history.sum()
@@ -96,5 +97,4 @@ def main():
 
 
 if __name__ == '__main__':
-    #print (finviz.get_stock('AMD'))
     main()
