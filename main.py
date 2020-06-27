@@ -66,7 +66,7 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
     with open(config_p) as json_file: 
         condition = json.load(json_file)
 
-    if True: #'Bull-Big' in tech_idx['latest_data_MA'][-1]:
+    if 'Bull-Big' in tech_idx['latest_data_MA'][-1]:
         condition = condition['big_bull']
         condition_result = copy.deepcopy(condition)
         for strategy in condition.keys():
