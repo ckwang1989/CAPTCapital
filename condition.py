@@ -1,33 +1,33 @@
-class Condition():
-    def f40up80():
+class Condition:
+    def f40up80(self, tech_idxes):
         return True
 
-    def S80up():
+    def S80up(self, tech_idxes):
         return True
 
-    def M80up():
+    def M80up(self, tech_idxes):
         return True
 
-    def f40down80():
+    def f40down80(self, tech_idxes):
         return True
 
-    def f40godown():
+    def f40godown(self, tech_idxes):
         return True
 
-    def Sgodown():
+    def Sgodown(self, tech_idxes):
         return True
 
-    def S30down():
+    def S30down(self, tech_idxes):
         return True
 
-    def f5up4():
+    def f5up4(self, tech_idxes):
         return True
 
-    def S70up():
+    def S70up(self, tech_idxes):
         return True
 
-    def M70up():
+    def M70up(self, tech_idxes):
         return True
 
-    def f5up4():
+    def f5up4(self, tech_idxes):
         return True

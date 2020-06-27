@@ -1,13 +1,15 @@
 import Stock_history
 import Technical_index
 import IV_HV
-from condition import Condition as C
+from condition import Condition
 
 import finviz
 import json 
 import copy
 
-def Strategy_excecute(t_all, key):
+C = Condition()
+
+def Strategy_excecute(tech_idx_all, key, condition):
     '''
     transfer the tech_idx_condition to result_flag, e.g.:
 
@@ -18,21 +20,23 @@ def Strategy_excecute(t_all, key):
     '''
     L = []
     global_trigger = False
-    def dfs(t1):
-        tmp = []
+    def excecute(t1):
+        local_list = []
         if type(t1) == type([]):
             local_trigger = True
             for t in t1:
-                local_trigger = getattr(C, t)() and local_trigger
-                tmp.append({f'{t}': getattr(C, t)()})
+                func = getattr(C, t)
+                tmp = func(condition)
+                local_trigger = tmp and local_trigger
+                local_list.append({f'{t}': tmp})
         else:
-            local_trigger = getattr(C, t1)()
-            tmp.append({f'{t1}': local_trigger})
-        return tmp, local_trigger
+            func = getattr(C, t)
+            local_list.append({f'{t}': func(condition)})
+        return local_list, local_trigger
 
-    for t in t_all:
-        res, local_trigger = dfs(t)
-        L.append(res)
+    for t_one_type in tech_idx_all:
+        r, local_trigger = excecute(t_one_type)
+        L.append(r)
         global_trigger = global_trigger or local_trigger
     return [L, global_trigger]
 
@@ -66,7 +70,7 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
     with open(config_p) as json_file: 
         condition = json.load(json_file)
 
-    if 'Bull-Big' in tech_idx['latest_data_MA'][-1]:
+    if 1: #'Bull-Big' in tech_idx['latest_data_MA'][-1]:
         condition = condition['big_bull']
         condition_result = copy.deepcopy(condition)
         for strategy in condition.keys():
@@ -78,7 +82,7 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
                 keys = [f'in{strategy[:2]}', f'out{strategy[:2]}']
             for k in keys:
                 tech_idxes = condition[strategy][k]
-                condition_result[strategy][k] = Strategy_excecute(tech_idxes, k)
+                condition_result[strategy][k] = Strategy_excecute(tech_idxes, k, tech_idx)
 
 def main():
     Stock_name='AMD'
