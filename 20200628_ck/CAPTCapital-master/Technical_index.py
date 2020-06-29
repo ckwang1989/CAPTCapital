@@ -107,6 +107,7 @@ class sum():
         MA80_AVG_dict={}
         MA40_Weekly_BT={}
         MA80_Weekly_BT={}
+        BB={}
         MA_40_80_Weekly_BT={}
         row_n =int(len(df))-1
         a = MA_day
@@ -557,6 +558,12 @@ class sum():
                     if period==1:
                         if back_ornot==back_en or back_ornot==1: 
                             upper_per,lower_per,mean,upper,lower=self.bollinger_bands(df,Start,20,2)
+                        if Start>=row_n-0:
+                            upper_per,lower_per,mean,upper,lower=self.bollinger_bands(df,Start,20,2)
+                            BB['upper']=upper 
+                            BB['lower']=lower 
+                    else:
+                        BB=''                         
 
                 #========backtesting
                     
@@ -940,8 +947,6 @@ class sum():
                                         dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                 #==32. W/D牛市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),W:白>藍 D:白(NA斜率)>藍, bull  and per_DIF[0]>per_DIF[1]
                                     if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and MA40_val_sum[0]>MA80_val_sum[0] and M40_weekly_value[0]>M80_weekly_value[0]: # and MA40_val_sum[0]>MA40_val_sum[3]
-                                        if Start>=9700:
-                                            temp=1
                                         num=str('32%s'%sum_check) 
                                         bull_bear_check='bull'
                                         out=['6_L','3_L'] # 出場機制
@@ -1187,7 +1192,7 @@ class sum():
         M80_weekly_value
 
         #=======build dict from list
-        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','DIF_result','per_DIF','D_per_a','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','precent_Vol','V_MA5_val_sum','dev_dict','trigger','weekly_BT','M40_weekly_value','M80_weekly_value']
+        list_input=['MA5_val_sum','MA4_val_sum','MA40_val_sum','MA80_val_sum','latest_data_MA','OSC_result','DIF_result','per_DIF','D_per_a','RSI_result','RSI_result_F','ATR_avg_sum','ATR_avg_F','precent_Vol','V_MA5_val_sum','dev_dict','trigger','weekly_BT','M40_weekly_value','M80_weekly_value','BB']
         dict_input={}
         for name in list_input:
             dict_input[name]=locals()[name]
