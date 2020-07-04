@@ -1,6 +1,7 @@
 import Stock_history
 import Technical_index
 import IV_HV
+import BB
 from condition import Condition
 
 import finviz
@@ -82,21 +83,30 @@ def Strategy_trigger(tech_idx, config_p='configure_file.json'):
         for k in keys:
             tech_idxes = condition[strategy][k]
             condition_result[strategy][k] = Strategy_excecute(tech_idxes, k, tech_idx)
-    print (condition_result)
+    return condition_result
 
 def main():
     Stock_name='AMD'
     A=Stock_history.sum()
     B=Technical_index.sum()
+    F=BB.sum()
 #    G=IV_HV.sum()
     df=A.Stock_price(Stock_name)
 
-    daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=1, back_ornot=0) # get daily data_570days
-    weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
+    weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=5, back_ornot=0, weekly_BT=0) # get weekly data_570Weeks
+    daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
 
-    Strategy_trigger(daily_dict)
+    # input DTE, output: std_Dev of out_BB, which include all High/Low price(DTE)
+    BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
+
+    print (daily_dict)
+    print ('\n\n\n')
+    print (weekly_dict)
+    print ('\n\n\n')
+    condition_result =  Strategy_trigger(daily_dict)
+    print (condition_result)
 #    IV_HV_dict=G.IV_HV(Stock_name)
-
+    
 
 if __name__ == '__main__':
     main()
