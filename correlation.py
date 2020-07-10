@@ -26,6 +26,15 @@ def load_close(stock_symbol):
 #		return stock_tech_idx_dict
 
 def correlation_day(s1, s2):
+	'''
+		Input:
+			s1: stock_symbol
+			s2: etf_symbol
+		Output:
+			count: 過去連續幾天的漲跌是同向的
+			count_month: 過去一個月內有幾天的漲跌是同向的
+			count_quarter: 過去一個季內有幾天的漲跌是同向的
+	'''
 	A = Stock_history.sum()
 	A.Stock_price(s1)
 	A.Stock_price(s2)
@@ -50,4 +59,4 @@ def correlation_day(s1, s2):
 
 
 if __name__ == '__main__':
-	correlation_day('AMD', 'SPY')
+	correlation_day('ATVI', 'SPY')
