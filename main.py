@@ -17,6 +17,8 @@ from datetime import timedelta
 from datetime import date as dt
 import yfinance as yf
 
+import BB
+
 C = Condition()
 
 # 市場 / 策略 / 進場觸發觸發指標(key) / 股票名稱 / ETF名稱 / 履約價 / 履約日期 / 相似天數 / 觸發進場策略 / 觸發出場策略
@@ -183,16 +185,19 @@ def Strategy_trigger(tech_idx, config_p='strategy.json'):
 # 市場 / 進or出 / 策略 / 進場觸發觸發指標(key) / 股票名稱 / ETF名稱 / 履約價 / 履約日期 / 相似天數 / 觸發進場策略 / 觸發出場策略
 def main():
    #     Stock_name='AMD'
-   keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV']
-   for stock_name in ['CNP']:#open('stock_num.txt', 'r').readlines():
+   keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV', 'BBlower_Close', 'BBupper_Close', 'last_close']
+   for stock_name in open('stock_num.txt', 'r').readlines():
+        stock_name = stock_name.strip()
         print (stock_name)
         output = {i:'' for i in keys}
-        Stock_name = stock_name.strip().split('-')[0]
+        output['correlation'] = '-'.join(stock_name.split('-')[2:])
+        Stock_name = stock_name.split('-')[0]
         A=Stock_history.sum()
         B=Technical_index.sum()
         G=IV_HV.sum()
         df=A.Stock_price(Stock_name)
         last_close = df[:][-1:]['Close'].values[0]
+        output['last_close'] = last_close
 
         # daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=1, back_ornot=0) # get daily data_570days
         # weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570, period=5, back_ornot=0) # get weekly data_570Weeks
@@ -222,7 +227,7 @@ def main():
 #                print ('in', condition_result[k][f'in{k[:2]}'][1])
 #                print ('out', condition_result[k][f'out{k[:2]}'][1])
 
-        if 'strategy' not in output.keys() or output['inout'] == 'out':
+        if output['strategy'] == '' or output['inout'] == 'out':
             continue
 
         L=Stock_back_test.sum()
@@ -287,6 +292,11 @@ def main():
             assert False
         output['DTE'] = DTE
         output['strike'] = iv_new_price
+        F = BB.sum()
+        BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
+        print (BB_dict)
+        output['BBupper_Close'] = (BB_dict['upper_in'] - last_close) / last_close
+        output['BBlower_Close'] = (last_close - BB_dict['lower_in']) / last_close
         print ('output: ', output)
 
 if __name__ == '__main__':
