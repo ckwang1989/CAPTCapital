@@ -10,16 +10,13 @@ class sum():
         # ==============Exchange==============
         #  AMEX: NYSEAN
         # NASD: NASDAQ
-        # NYSE: NYSE
+        # NYSE: NYSE 
         # https://oic.ivolatility.com/oic_options.j;jsessionid=bOxhYZXCIBEe?ticker=AMD%3ANASDAQ&R=1
-        for password in ['bOvpXRl7ePd_']:
+        for password in ['aQYWfTqwfNPd']:
             for exchange in ['NYSE','NYSEAN','NASDAQ','NYSEArca']:
                 url = 'https://oic.ivolatility.com/oic_options.j;jsessionid=%s?ticker=%s3A%s&R=1'%(password,stock_nam+ '%',exchange)
-
-                    # https://oic.ivolatility.com/oic_options.j;jsessionid=a4aVeOaOsH97?ticker=AMD%3ANASDAQ&R=1
                 try:
                     response = requests.get(url)#, timeout=0.1)
-                    # print(response)
                 # DNS lookup failure
                 except requests.exceptions.ConnectionError as e:
                     print('''%s-Webpage doesn't seem to exist!\n%s''' %(stock_nam,e) )
@@ -37,12 +34,10 @@ class sum():
                 try:
                     soup = BeautifulSoup(response.content, 'html.parser')
                     check=soup.text
-                    if "You may give each page an identifying name" in check :
-                        pass # exchange is wrong
-                    elif "Your session is expired, please continue here" in check:
+                    if 'IMPLIED VOLATILITY' in check:
                         break
                     else:
-                        break
+                        pass
                 except:
                     pass
                 
