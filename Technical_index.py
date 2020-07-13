@@ -378,7 +378,10 @@ class sum():
                                     D_per_a[2]=D_per_a[1]
                                     D_per_a[1]=D_per_a[0]
                                     flag_KD_loop=0
-                                K_per_a[flag_KD_loop]=round((df['Close'][int(Start)]-low)/(high-low)*100,2)
+                                if (high-low)!=0:
+                                    K_per_a[flag_KD_loop]=round((df['Close'][int(Start)]-low)/(high-low)*100,2)
+                                else:
+                                    K_per_a[flag_KD_loop]=pow(10,-6)
                                 if flag_KD_loop<=3:
                                     D_per_a[flag_KD_loop]=round((K_per_a[flag_KD_loop]+K_per_a[flag_KD_loop+1]+K_per_a[flag_KD_loop+2])/3,2)
                                 max_dict[max_min_F]=0 # clear oldest of record
@@ -698,22 +701,27 @@ class sum():
                             #綠下跨紅 & S/M靠近80: 6_L
                                 if MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and D_per_a[0]>=60 and per_DIF[0]>=60: # 
                                     self.out_check='6_L'
-                            #綠上跨紅 & S/M靠近20: 3_R
+                            #綠上跨紅 & S/M靠近20: 6_R
                                 if MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1] and D_per_a[0]<=40 and per_DIF[0]<=40: # 
                                     self.out_check='6_R'
                             #綠下跨紅 & S/M下彎: 7_L
                                 if MA5_val_sum[0]<MA4_val_sum[0] and MA5_val_sum[1]>MA4_val_sum[1] and D_per_a[0]<max(D_per_a) and per_DIF[0]<max(per_DIF): # 
                                     self.out_check='7_L'
-                            #M%<20 & M上勾3%: 8_L
+                            #M%<20 & M上勾3%: 8_R
                                 if per_DIF[0]<=20 and DIF_result[0]>min(DIF_result)*1.03: # 
-                                    self.out_check='8_L'
+                                    self.out_check='8_R'
                             #向下跳空: 9_L
                                 if df['Open'][int(Start)]<df['Close'][int(Start-1)]*(1-1.2): # 
                                     self.out_check='9_L'
                             #白下彎(n): 10_L
                                 if MA40_val_sum[0]<MA40_val_sum[1] and MA40_val_sum[1]>MA40_val_sum[2]: # 白下彎(n)
                                     self.out_check='10_L'
-
+                            #>=上BB: 11_L
+                                if close_n_ATR>=upper: 
+                                    self.out_check='11_L'
+                            #<=下BB: 11_R
+                                if close_n_ATR<=lower: 
+                                    self.out_check='11_R'
                         #===trigger condition
                         # dict_sum
                             #====背離
@@ -963,7 +971,8 @@ class sum():
                                                 first_close_back=back_close_R # 非背離 紀錄當下 close
                                                 dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                         #==30. 不分市場&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),W:白>藍 D:白(NA斜率)>藍, bull  and per_DIF[0]>per_DIF[1]
-                                            if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1]: # and MA40_val_sum[0]>MA40_val_sum[3]
+                                            if  min(D_per_a)<=20 and D_per_a[0]<40 and D_per_a[0]>min(D_per_a)*1.03 and \
+                                                per_DIF[0]<=50  and MA5_val_sum[0]>MA4_val_sum[0] and MA5_val_sum[1]<MA4_val_sum[1]: # and MA40_val_sum[0]>MA40_val_sum[3]
                                                 if Start>=9700:
                                                     temp=1
                                                 num=str('30%s'%sum_check) 
@@ -1011,7 +1020,7 @@ class sum():
                                                     temp=1
                                                 num=str('35%s'%sum_check) 
                                                 bull_bear_check='bear'
-                                                out=['6_R','3_L'] # 出場機制
+                                                out=['6_R','3_R'] # 出場機制
                                                 first_close_back=back_close_R # 非背離 紀錄當下 close
                                                 dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                         #==36. D牛市&正三合一(min(S)<=30 and S<40 and S>min(4days)*1.03 and M% <=20 and M:positive and G cross R up),D:白(NA斜率)>藍, bull
@@ -1057,7 +1066,7 @@ class sum():
                                                 out=['7_L','4_L'] # 出場機制
                                                 first_close_back=back_close_L # 非背離 紀錄當下 close
                                                 dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
-                                        
+                                        #==
                                             if lower_list[5]>0:
                                                 self.debug=Start
                                                 back_close_1=df['Close'][int(Start-1)]
@@ -1065,10 +1074,8 @@ class sum():
                                                 back_close_3=df['Close'][int(Start-3)]
                                                 slew_R_BB=self.slew_rate_check(lower_list,0.5,3) # check slew (list,in percent,days)
                                                 slew_L_BB=self.slew_rate_check(upper_list,0.1,3) # check slew (list,in percent,days)
-                                        #==44. 不分市場/close>前一天BB_lower(前三天沒跌破BB) & 白下彎或走平(白[0][1]漲幅不超過0.1%) & BB下都平(連續維持在0.5%內), bull
+                                        #==44. 不分市場/close>前一天BB_upper(前三天沒跌破BB) & 白下彎或走平(白[0][1]漲幅不超過0.1%) & BB下都平(連續維持在0.5%內), bull
                                                 if  slew_R_BB==1 and slew_L_BB==1 and back_close>upper_list[1] and back_close_1<upper_list[1] and back_close_2<upper_list[2] and back_close_3<upper_list[3]:# and ((MA40_val_sum[0]-MA40_val_sum[1])/MA40_val_sum[1])*100>=0.1:  
-                                                    if Start>5507:
-                                                        temp=1
                                                     num=str('44%s'%sum_check) 
                                                     bull_bear_check='bull'
                                                     out=['10_L'] # 出場機制
@@ -1080,7 +1087,7 @@ class sum():
                                                         temp=1
                                                     num=str('45%s'%sum_check) 
                                                     bull_bear_check='bear'
-                                                    out=['8_L','9_L'] # 出場機制
+                                                    out=['8_R','9_L'] # 出場機制
                                                     first_close_back=back_close_R # 非背離 紀錄當下 close
                                                     dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                         #==46. 不分市場/close<前一天BB_lower(前三天沒跌破BB) & 白下彎或走平(白[0][1]漲幅不超過0.1%) & BB下都平(連續維持在0.5%內), bull
@@ -1091,6 +1098,42 @@ class sum():
                                                     bull_bear_check='bull'
                                                     out=['10_L'] # 出場機制
                                                     first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==47. 不分市場/close>當天BB_upper + 爆量(量>=1.2 MA5), bear
+                                                if  back_close>upper_list[1] and back_close_1<upper_list[1] and back_close_2<upper_list[2] and back_close_3<upper_list[3] and precent_Vol >=precent_V_EMA5*1.2: 
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('47%s'%sum_check) 
+                                                    bull_bear_check='bear'
+                                                    out=['11_R'] # 出場機制
+                                                    first_close_back=back_close_R # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==48. 不分市場/close<當天BB_lower + 爆量(量>=1.2 MA5), bull
+                                                if  back_close<lower_list[1] and back_close_1>lower_list[1] and back_close_2>lower_list[2] and back_close_3>lower_list[3] and precent_Vol >=precent_V_EMA5*1.2: 
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('48%s'%sum_check) 
+                                                    bull_bear_check='bull'
+                                                    out=['11_L'] # 出場機制
+                                                    first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==49. 不分市場/close>當天BB_upper + 爆量(量>=1.2 MA5), bull
+                                                if  back_close>upper_list[1] and back_close_1<upper_list[1] and back_close_2<upper_list[2] and back_close_3<upper_list[3] and precent_Vol >=precent_V_EMA5*1.2: 
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('49%s'%sum_check) 
+                                                    bull_bear_check='bull'
+                                                    out=['11_L'] # 出場機制
+                                                    first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==50. 不分市場/close<當天BB_lower + 爆量(量>=1.2 MA5), bear
+                                                if  back_close<lower_list[1] and back_close_1>lower_list[1] and back_close_2>lower_list[2] and back_close_3>lower_list[3] and precent_Vol >=precent_V_EMA5*1.2: 
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('50%s'%sum_check) 
+                                                    bull_bear_check='bear'
+                                                    out=['11_R'] # 出場機制
+                                                    first_close_back=back_close_R # 非背離 紀錄當下 close
                                                     dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
 
                                 except:
@@ -1164,6 +1207,14 @@ class sum():
                 if count_get<=5:
                     trigger.append('%s_%s'%(count_get,key))
 
+        # dict_back_all_obereved47=self.dict_find(dict_back_all,47, '/')
+        # dict_back_all_obereved48=self.dict_find(dict_back_all,48, '/')
+        # dict_back_all_obereved49=self.dict_find(dict_back_all,49, '/')
+        # dict_back_all_obereved50=self.dict_find(dict_back_all,50, '/')
+
+        # dict_back_all_obereved44=self.dict_find(dict_back_all,44, '/')
+        # dict_back_all_obereved45=self.dict_find(dict_back_all,45, '/')
+        # dict_back_all_obereved46=self.dict_find(dict_back_all,46, '/')
         # 不指定QM, 輸入/  ,Qa/Ma
         # dict_back_all_obereved26=self.dict_find(dict_back_all,26, 'Qa/Ma') # FAvg40 cross Favg80 up, bull
         # dict_back_all_obereved27=self.dict_find(dict_back_all,27, 'Qa/Ma') # FAvg40 cross Favg80 down, bear
@@ -1216,11 +1267,11 @@ class sum():
         if back_ornot==back_en:
             #========save backtest result to csv================
             if period==1:
-                filepath=os.getcwd() + '\\stock_temp'
+                filepath=os.getcwd() + os.sep +'stock_temp'
                 if not os.path.isdir(filepath):
                     os.mkdir(filepath)
                 dict_back_all_pd = pd.DataFrame.from_dict(dict_back_all, orient="index")
-                dict_back_all_pd.to_csv(filepath + '\\%s_%s.csv'%(stock_name,'BT')) # Throw away one sample record
+                dict_back_all_pd.to_csv(filepath + os.sep + '%s_%s.csv'%(stock_name,'BT')) # Throw away one sample record
                 #update to googlesheet
                 # sheet=self.initial_google_API_sheet()
                 # self.csv_to_google_sheet(test_stock,sheet)
@@ -1285,7 +1336,7 @@ class sum():
         ATR_avg_sum=[list_ATR[len(list_ATR)-1], list_ATR[len(list_ATR)-2], list_ATR[len(list_ATR)-3], list_ATR[len(list_ATR)-4]] #daily_ok
         ATR_avg_F=self.status_analysis(ATR_avg_sum) #daily_ok
         try:
-            dev_dict={'OSC':OSC_dev_result[len(OSC_dev_result)-1],'RSI':RSI_dev_result[len(RSI_dev_result)-1],'Sto':D_dev_result[len(D_dev_result)-1]}
+            dev_dict={'precent':Date_precent,'OSC':OSC_dev_result[len(OSC_dev_result)-1],'RSI':RSI_dev_result[len(RSI_dev_result)-1],'Sto':D_dev_result[len(D_dev_result)-1]}
         except:
             dev_dict={}
         V_MA5_val_sum
@@ -1874,13 +1925,13 @@ class sum():
 
     def Stock_single_no_data(self, stock_TW):
 
-        filepath=os.getcwd() + '\\stock_temp'
+        filepath=os.getcwd() + os.sep + 'stock_temp'
         if not os.path.isdir(filepath):
             os.mkdir(filepath)
         stock = yf.Ticker(stock_TW)
         df =stock.history(period="max")
         df=df.reset_index()
-        df.to_csv(os.getcwd() + '\\stock_temp' + '\\file_%s.csv' %stock_TW,index='Date')
+        df.to_csv(os.getcwd() + os.sep + 'stock_temp' + os.sep + 'file_%s.csv' %stock_TW,index='Date')
         return df
 
     def csv_to_google_sheet(self,Stock_mame,sheet):
@@ -1891,7 +1942,7 @@ class sum():
             worksheet = sheet.worksheet(Stock_mame)
         except:
             sheet.add_worksheet(title=Stock_mame, rows="100", cols="20")
-        csvFile = os.getcwd() + '\\stock_temp\\%s_BT.csv'%Stock_mame
+        csvFile = os.getcwd() + os.sep + 'stock_temp%s%s_BT.csv'%(os.sep,Stock_mame)
         sheetName=Stock_mame
         sheet.values_update(
             sheetName,
@@ -1900,7 +1951,7 @@ class sum():
         )
         
     def initial_google_API_sheet(self):
-        auth_json_path = os.getcwd() + '\\google_API\\quickstart-1588518768211-49f22d29c37c.json'
+        auth_json_path = os.getcwd() + os.sep + 'google_API%squickstart-1588518768211-49f22d29c37c.json'%os.sep
         gss_scopes = ['https://spreadsheets.google.com/feeds']
         #連線
         credentials = ServiceAccountCredentials.from_json_keyfile_name(auth_json_path,gss_scopes)
@@ -1922,7 +1973,7 @@ class sum():
         # print(wks_list)
 
         # refer web:  https://medium.com/@yanweiliu/%E5%A6%82%E4%BD%95%E9%80%8F%E9%81%8Epython%E5%BB%BA%E7%AB%8Bgoogle%E8%A1%A8%E5%96%AE-%E4%BD%BF%E7%94%A8google-sheet-api-314927f7a601
-        auth_json_path = os.getcwd() + '\\google_API\\quickstart-1588518768211-49f22d29c37c.json'
+        auth_json_path = os.getcwd() + os.sep +'google_API%squickstart-1588518768211-49f22d29c37c.json'%os.sep
         gss_scopes = ['https://spreadsheets.google.com/feeds']
 
         #連線
@@ -1946,7 +1997,7 @@ class sum():
 
         # temp=sheet.get_all_values()
         # https://stackoverflow.com/questions/57264871/python-gspread-import-csv-to-specific-work-sheet
-        csvFile = os.getcwd() + '\\stock_temp\\SPY_BT.csv'
+        csvFile = os.getcwd() + os.sep +'stock_temp%sSPY_BT.csv'%os.sep
         sheetName='SPY_BT'
         sheet.values_update(
             sheetName,
@@ -1997,7 +2048,7 @@ class sum():
         temp=1
 
     def save_obj(self, obj, name ):
-        filepath=os.getcwd() + '\\obj'
+        filepath=os.getcwd() + os.sep +'obj'
         if not os.path.isdir(filepath):
             os.mkdir(filepath)
         with open('obj/'+ name + '.pkl', 'wb') as f:
@@ -2077,10 +2128,10 @@ if __name__ == '__main__':
     
     BT_sum={}
     temp=0
-    # for i in [3,10]:
-    #     dict_r, temp=sum().MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
-    #     dict_r, BT_sum[i]=sum().MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
-    # sum().save_obj(BT_sum,test_stock)
+    for i in [3,10]:
+        dict_r, temp=sum().MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
+        dict_r, BT_sum[i]=sum().MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
+    sum().save_obj(BT_sum,test_stock)
     BT=sum().load_obj(test_stock)
     sum().BT_combination(BT,70,test_stock)
     print('123')
