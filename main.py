@@ -300,4 +300,5 @@ def main():
         print ('output: ', output)
 
 if __name__ == '__main__':
+    #print (finviz.get_stock('AMD'))
     main()
