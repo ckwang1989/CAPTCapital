@@ -4,101 +4,7 @@ from bs4 import BeautifulSoup
 import time
 # import re
 
-
-
-import sys
-sys.path.insert(-1, '/usr/local/lib/python2.7/dist-packages')
-
-import time
-import os
-import json
-#from Module import net_fn
-
-from urllib import request
-from bs4 import BeautifulSoup
-import requests
-
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-from webdriver_manager.chrome import ChromeDriverManager
-
-import argparse
-
-import copy
-
-from selenium.webdriver.support.ui import Select
-
 class sum():
-    def __init__(self):
-        #self.chrome_path = '/Users/Wiz/.wdm/chromedriver/2.46/mac64/chromedriver'
-        self.chrome_path = '/Users/Wiz/.wdm/drivers/chromedriver/83.0.4103.39/mac64/chromedriver'
-        self.driver = None
-        self.Init_Browser()
-
-    def Init_Browser(self):
-        '''
-        Init_Browser: Install chrome driver if it's not exist
-            Input: 
-                self.chrome_path: setting in constructor
-            Output:
-                self.driver: the driver of chrome
-        '''
-        if os.path.exists(self.chrome_path):
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.add_argument("--window-size=1920x1080")
-            chrome_options.add_argument("--mute-audio")
-            self.driver = webdriver.Chrome(chrome_options=chrome_options, \
-                executable_path=self.chrome_path)
-        else:
-            self.driver = webdriver.Chrome(ChromeDriverManager().install())
-
-    def get_soup(self, url):
-        '''
-        get_soup: get soup from url onlt for quar
-            Input:  
-                url
-            Output:
-                soup
-        '''
-
-        url = "https://www.baidu.com/"
-        url = "https://www.optionseducation.org/toolsoptionquotes/historical-and-implied-volatility"
-        # url = "https://home.cnblogs.com/u/tDayUp/"
-        self.driver.get(url)
-        """通過tag  *號匹配標簽定位  一 """
-        time.sleep(10)
-        search = self.driver.find_element_by_tag_name("input")
- #       search.send_keys(u'amd')
-        assert False
-
-        self.driver.get(url)
-        try:
-            wait = WebDriverWait(self.driver, 2)
-            wait.until(EC.presence_of_element_located((By.CLASS_NAME, \
-                'symbolform')))
-        except:
-            print ('fail')
-            pass
-
-        temp = self.driver.find_element_by_xpath(\
-            '//input[@name="ticker"]').send_keys("amd")
-        self.driver.execute_script("arguments[0].click();", temp)
-
-        s1 = Select(self.driver.find_element_by_xpath(\
-            '//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]'))
-        s1.select_by_value('2001')
-        
-        self.driver.find_element_by_xpath('//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[3]/div').click()
-        #self.driver.execute_script("arguments[0].click();", temp)
-
-        time.sleep(2)
-        soup = (BeautifulSoup(self.driver.page_source,"lxml"))
-        return soup
-
     def IV_HV(self, stock_nam): #
 
         # ==============Exchange==============
@@ -107,7 +13,7 @@ class sum():
         # NYSE: NYSE 
         # https://oic.ivolatility.com/oic_options.j;jsessionid=bOxhYZXCIBEe?ticker=AMD%3ANASDAQ&R=1
         for password in ['aQYWfTqwfNPd']:
-            for exchange in ['NYSE','NYSEAN','NASDAQ','NYSEArca']:
+            for exchange in ['NASDAQ','NYSE','NYSEAN','NYSEArca']:
                 url = 'https://oic.ivolatility.com/oic_options.j;jsessionid=%s?ticker=%s3A%s&R=1'%(password,stock_nam+ '%',exchange)
                 try:
                     response = requests.get(url)#, timeout=0.1)
@@ -134,8 +40,7 @@ class sum():
                         pass
                 except:
                     pass
-        print (soup.text)
-        assert False
+                
         HV_days_10=soup.text.split('\n\n\n10 days')[1].split('\n\n\n20 days')[0]
         HV_days_10_curr=float(HV_days_10.split('%')[0])
         HV_days_10_W=float(HV_days_10.split('%')[1])

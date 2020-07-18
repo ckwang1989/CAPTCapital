@@ -10,7 +10,7 @@ import copy
 
 C = Condition()
 
-def Strategy_excecute(tech_idx_all, key, condition):
+def strategy_excecute(tech_idx_all, key, condition):
     '''
     transfer the tech_idx_condition to result_flag, e.g.:
 
@@ -41,7 +41,7 @@ def Strategy_excecute(tech_idx_all, key, condition):
         global_trigger = global_trigger or local_trigger
     return [L, global_trigger]
 
-def Strategy_trigger(tech_idx, config_p='strategy.json'):
+def strategy_trigger(tech_idx, config_p='strategy.json'):
     '''
     trigging a specific strategy by tech_idx
     input:
@@ -76,47 +76,13 @@ def Strategy_trigger(tech_idx, config_p='strategy.json'):
     for strategy in condition.keys():
         # combination contract
         if len(strategy) > 2:
-            keys = [f'in{strategy[:2]}', f'in{strategy[2:]}', f'out{strategy[:2]}', f'out{strategy[2:]}']
+            strategy_n=strategy.split('_')[0] # Dary: for more strategy
+            keys = [f'in{strategy_n[:2]}', f'in{strategy_n[2:]}', f'out{strategy_n[:2]}', f'out{strategy_n[2:]}']
         # single contract
         else:
-            keys = [f'in{strategy[:2]}', f'out{strategy[:2]}']
+            strategy_n = strategy
+            keys = [f'in{strategy_n[:2]}', f'out{strategy_n[:2]}']
         for k in keys:
             tech_idxes = condition[strategy][k]
-            condition_result[strategy][k] = Strategy_excecute(tech_idxes, k, tech_idx)
-    return condition_result
-
-def Strategy_trigger(Stock_name):
-    A=Stock_history.sum()
-    B=Technical_index.sum()
-    F=BB.sum()
-#    G=IV_HV.sum()
-    df=A.Stock_price(Stock_name)
-
-    weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=5, back_ornot=0, weekly_BT=0) # get weekly data_570Weeks
-    daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
-
-    # input DTE, output: std_Dev of out_BB, which include all High/Low price(DTE)
-    BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
-    return Strategy_trigger(daily_dict)
-
-if __name__ == '__main__':
-    Stock_name='AMD'
-    A=Stock_history.sum()
-    B=Technical_index.sum()
-    F=BB.sum()
-#    G=IV_HV.sum()
-    df=A.Stock_price(Stock_name)
-
-    weekly_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=5, back_ornot=0, weekly_BT=0) # get weekly data_570Weeks
-    daily_dict=B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
-
-    # input DTE, output: std_Dev of out_BB, which include all High/Low price(DTE)
-    BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
-
-    print (daily_dict)
-    print ('\n\n\n')
-    print (weekly_dict)
-    print ('\n\n\n')
-    condition_result = Strategy_trigger(daily_dict)
-    print (condition_result)
-#    IV_HV_dict=G.IV_HV(Stock_name)
+            condition_result[strategy][k] = strategy_excecute(tech_idxes, k, tech_idx)
+    return condition_result 
