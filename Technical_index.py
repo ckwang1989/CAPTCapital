@@ -25,6 +25,7 @@ class sum():
 
         M40_weekly_value={}
         M80_weekly_value={}
+        sto_weekly_value={}
         temp=[]
         low=0
         middle=int((len(weekly_BT)-1)/2)
@@ -47,6 +48,7 @@ class sum():
                     for i in range(0,flag):
                         M40_weekly_value[i]=float(weekly_BT[low-i].split(',')[0])
                         M80_weekly_value[i]=float(weekly_BT[low-i].split(',')[1])
+                        sto_weekly_value[i]=float(weekly_BT[low-i].split(',')[3])
                     break
             if high-middle==1:
                 flag_check=int(weekly_BT[middle].split(',')[2])
@@ -57,10 +59,11 @@ class sum():
                         flag=1 # if low=0, weekly[low] will be error
                     for i in range(0,flag):
                         M40_weekly_value[i]=float(weekly_BT[middle-i].split(',')[0])
-                        M80_weekly_value[i]=float(weekly_BT[middle-i].split(',')[1])      
+                        M80_weekly_value[i]=float(weekly_BT[middle-i].split(',')[1])
+                        sto_weekly_value[i]=float(weekly_BT[middle-i].split(',')[3])      
                     break              
 
-        return M40_weekly_value, M80_weekly_value
+        return M40_weekly_value, M80_weekly_value, sto_weekly_value
 
     def bollinger_bands(self, df,row,lookback, numsd):
         df = df['Close'].iloc[row-(lookback-1):row+1] # only get lookback array
@@ -137,6 +140,7 @@ class sum():
         upper_list=[0, 0, 0, 0, 0, 0]#,0
         lower_list=[0, 0, 0, 0, 0, 0]#,0
         MA_40_80_Weekly_BT={}
+
         row_n =int(len(df))-1
         a = MA_day
         b = EMA_day
@@ -279,17 +283,20 @@ class sum():
                 print('tek error')
                 break
             if back_ornot==1 and period==1: # get weekly MA40 & MA80
-                M40_weekly_value, M80_weekly_value=self.dict_search(Start,weekly_BT)
+                M40_weekly_value, M80_weekly_value, sto_weekly_value=self.dict_search(Start,weekly_BT)
             else:
                 if Start>=row_n-5 and period==1:
                     M40_weekly_value={}
                     M80_weekly_value={}
+                    sto_weekly_value={}
                     for M4080 in range(0,4):
                         M40_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[0])
                         M80_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[1])
+                        sto_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[3])
                 elif  period==5:
                         M40_weekly_value=""
                         M80_weekly_value=""
+                        sto_weekly_value=""
             try:
                 nan_check=df['Close'][int(Start)]
                 if nan_check==nan_check:
@@ -544,7 +551,7 @@ class sum():
                             MA80_val_sum=[0, 0, 0, 0] #daily_ok
 
                         if period==5: # for backtest, record weekly data into daily
-                            MA_40_80_Weekly_BT[flag_MA80]=str(round(MA40_val_sum[0],2)) + ',' + str(round(MA80_val_sum[0],2)) + ',' +  str(Start)  # used for weekly backtest
+                            MA_40_80_Weekly_BT[flag_MA80]=str(round(MA40_val_sum[0],2)) + ',' + str(round(MA80_val_sum[0],2)) + ',' +  str(Start) + ',' + str(D_per_a[0]) # used for weekly backtest
                             # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[2]
                             # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[1]
                             # temp1=MA_40_80_Weekly_BT[len(MA_40_80_Weekly_BT)-1].split(',')[0]
@@ -722,6 +729,12 @@ class sum():
                             #<=下BB: 11_R
                                 if close_n_ATR<=lower: 
                                     self.out_check='11_R'
+                            #sto破50向下: 12_L
+                                if D_per_a[0]<50 and D_per_a[1]>50: 
+                                    self.out_check='12_L'
+                            #sto破50向上: 12_R
+                                if D_per_a[0]>50 and D_per_a[1]<50: 
+                                    self.out_check='12_R'
                         #===trigger condition
                         # dict_sum
                             #====背離
@@ -1127,7 +1140,7 @@ class sum():
                                                     first_close_back=back_close_L # 非背離 紀錄當下 close
                                                     dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                         #==50. 不分市場/close<當天BB_lower + 爆量(量>=1.2 MA5), bear
-                                                if  back_close<lower_list[1] and back_close_1>lower_list[1] and back_close_2>lower_list[2] and back_close_3>lower_list[3] and precent_Vol >=precent_V_EMA5*1.2: 
+                                                if  back_close<lower_list[1] and back_close_1>lower_list[1] and back_close_2>lower_list[2] and back_close_3>lower_list[3] and precent_Vol >=precent_V_EMA5*1.2:  
                                                     if Start>5507:
                                                         temp=1
                                                     num=str('50%s'%sum_check) 
@@ -1135,7 +1148,60 @@ class sum():
                                                     out=['11_R'] # 出場機制
                                                     first_close_back=back_close_R # 非背離 紀錄當下 close
                                                     dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
-
+                                        #==51. 週S>50 & 日S剛突破50向上, bull
+                                                if  D_per_a[0]>50 and D_per_a[1]<50 and sto_weekly_value[0]>50:
+                                                    if Start>4600:
+                                                        temp=1
+                                                    num=str('51%s'%sum_check) 
+                                                    bull_bear_check='bull'
+                                                    out=['6_L'] # 出場機制
+                                                    first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==52. 週S<50 & 日S剛突破50向下, bear
+                                                if  D_per_a[0]<50 and D_per_a[1]>50 and sto_weekly_value[0]<50:
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('52%s'%sum_check) 
+                                                    bull_bear_check='bear'
+                                                    out=['6_R'] # 出場機制
+                                                    first_close_back=back_close_R # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==53. 週S>50 & 日S剛突破50向上(連續正斜率), bull
+                                                if  D_per_a[0]>50 and D_per_a[1]<50 and sto_weekly_value[0]>50 and sto_weekly_value[0]>sto_weekly_value[1] and sto_weekly_value[1]>sto_weekly_value[2] :
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('53%s'%sum_check) 
+                                                    bull_bear_check='bull'
+                                                    out=['6_L'] # 出場機制
+                                                    first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==54. 週S<50 & 日S剛突破50向下(連續負斜率), bear
+                                                if  D_per_a[0]<50 and D_per_a[1]>50 and sto_weekly_value[0]<50 and sto_weekly_value[0]<sto_weekly_value[1] and sto_weekly_value[1]<sto_weekly_value[2]:
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('54%s'%sum_check) 
+                                                    bull_bear_check='bear'
+                                                    out=['6_R'] # 出場機制
+                                                    first_close_back=back_close_R # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==53. W/D牛, 日S>50 & 週S剛突破50向上, bull
+                                                if  D_per_a[0]>50 and D_per_a[1]<50 and sto_weekly_value[0]>50 and MA40_val_sum[0]>MA80_val_sum[0] and M40_weekly_value[0]>M80_weekly_value[0]:
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('55%s'%sum_check) 
+                                                    bull_bear_check='bull'
+                                                    out=['6_L'] # 出場機制
+                                                    first_close_back=back_close_L # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
+                                        #==54. W/D熊, 週S<50 & 日S剛突破50向下, bear
+                                                if  D_per_a[0]<50 and D_per_a[1]>50 and sto_weekly_value[0]<50 and D_per_a[0]<50 and MA40_val_sum[0]<MA80_val_sum[0] and M40_weekly_value[0]<M80_weekly_value[0]:
+                                                    if Start>5507:
+                                                        temp=1
+                                                    num=str('56%s'%sum_check) 
+                                                    bull_bear_check='bear'
+                                                    out=['6_R'] # 出場機制
+                                                    first_close_back=back_close_R # 非背離 紀錄當下 close
+                                                    dict_back_all=self.bact_trigger(dict_back_all,dict_flag_all,num,bull_bear_check,first_close_back,out)
                                 except:
                                     pass
 
@@ -1207,10 +1273,10 @@ class sum():
                 if count_get<=5:
                     trigger.append('%s_%s'%(count_get,key))
 
-        # dict_back_all_obereved47=self.dict_find(dict_back_all,47, '/')
-        # dict_back_all_obereved48=self.dict_find(dict_back_all,48, '/')
-        # dict_back_all_obereved49=self.dict_find(dict_back_all,49, '/')
-        # dict_back_all_obereved50=self.dict_find(dict_back_all,50, '/')
+        # dict_back_all_obereved51=self.dict_find(dict_back_all,51, '/')
+        # dict_back_all_obereved52=self.dict_find(dict_back_all,52, '/')
+        # dict_back_all_obereved53=self.dict_find(dict_back_all,53, '/')
+        # dict_back_all_obereved54=self.dict_find(dict_back_all,54, '/')
 
         # dict_back_all_obereved44=self.dict_find(dict_back_all,44, '/')
         # dict_back_all_obereved45=self.dict_find(dict_back_all,45, '/')
@@ -2120,7 +2186,7 @@ class sum():
 if __name__ == '__main__':
 
     
-    test_stock='SPY'
+    test_stock='QQQ'
     # sheet=sum().initial_google_API_sheet()
     # sum().csv_to_google_sheet(test_stock,sheet)
 

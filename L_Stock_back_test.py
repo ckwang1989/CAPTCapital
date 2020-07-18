@@ -22,18 +22,18 @@ class sum():
         test_stock=name
         BT_sum={}
         temp=0
-        filepath=os.getcwd() + '\\obj\\' + name + '.pkl'
-        if not os.path.isfile(filepath):
-            for i in [3,10]:
-                dict_r, temp=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
-                dict_r, BT_sum[i]=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
-            self.save_obj(BT_sum,test_stock)
+        filepath=os.getcwd() + os.sep + 'obj' + os.sep + name + '.pkl'
+        # if not os.path.isfile(filepath):
+        for i in [3,10]:
+            dict_r, temp=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
+            dict_r, BT_sum[i]=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
+        self.save_obj(BT_sum,test_stock)
         BT=self.load_obj(test_stock)
         sum().BT_combination(BT,70,test_stock) # 卡顯是勝率70以上
         print('%s BT done.'%test_stock)
 
     def save_obj(self, obj, name ):
-        filepath=os.getcwd() + '\\obj'
+        filepath=os.getcwd() + os.sep + 'obj'
         if not os.path.isdir(filepath):
             os.mkdir(filepath)
         with open('obj/'+ name + '.pkl', 'wb') as f:
@@ -54,6 +54,7 @@ class sum():
             dict_F_flag=0
             for day in ['5S','10S','15S','20S','30S','40S','60S','80S','100S','120S','140S']:
                 for percent in ['0','5','10','15','20']:
+                    S_1st_T=0
                     try:
                         W_1st_T=float(key_1st[key_type][day][percent].split('/')[3])
                         P_1st_T=float(key_1st[key_type][day][percent].split('/')[4])
@@ -89,11 +90,11 @@ class sum():
                     else:
                         W_r=round(W_1st*(gain_2nd)/(gain_1st+gain_2nd)+W_2nd*(gain_1st)/(gain_1st+gain_2nd),2)
                         P_r=round(P_1st*(gain_2nd)/(gain_1st+gain_2nd)+P_2nd*(gain_1st)/(gain_1st+gain_2nd),2)          
-                    dict_r_T[day]='%s/%s/%s'%(W_r,P_r,S_2nd_T)
+                    dict_r_T[day]='%s/%s/%s'%(W_r,P_r,(S_2nd_T+S_1st_T))
                     dict_r[key_type]=dict_r_T
                     if W_r>=T_per:
                         dict_F_flag=1
-                        dict_F[key_type]='%s,%s,%s,%s'%(W_r,P_r,day,S_2nd_T) # win rate, percent, DTE
+                        dict_F[key_type]='%s,%s,%s,%s'%(W_r,P_r,day,(S_2nd_T+S_1st_T)) # win rate, percent, DTE
                     if day=="140S" and dict_F_flag==1:
                         if '8/Q4/Ma'in key_type:
                             temp=1
