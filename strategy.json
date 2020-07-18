@@ -2,7 +2,24 @@
 {
 	"Bull-Big":
 	{
-
+		"SC":
+		{
+			"inSC":[["Trin_NA_31"],["Trin_WDBull_33"],["Trin_WDBear_35"],["Trin_DBull_37"],["Trin_DBear_39"]],
+			"outSC":[["S40down","M40down","f5up4"],["f5up4"]],
+			"day":"3_"
+		},
+		"BC":
+		{
+			"inBC":[["WupB_NA_26"],["WupB_W_28"]],
+			"outBC":[["f40godown","S80up"],["f40down80"]],
+			"day":"3_"
+		},
+		"SP":
+		{
+			"inSP":[["TriV_NA_30"],["TriV_WDBull_32"],["TriV_WDBear_34"],["TriV_DBull_36"],["TriV_DBear_38"],["Spos","S60up","Mpos"]],
+			"outSP":[["S60up","M60up","f5down4"],["f5down4"]],
+			"day":"_3"
+		},
 		"BC_S":
 		{
 			"inBC":[["devbear_all"]],
@@ -30,6 +47,12 @@
 			"outBC":[["f40godown","S80up"],["f40down80"]],
 			"day":"3_"
 		},
+		"SP":
+		{
+			"inSP":[["TriV_NA_30"],["TriV_WDBull_32"],["TriV_WDBear_34"],["TriV_DBull_36"],["TriV_DBear_38"],["Spos","S60up","Mpos"]],
+			"outSP":[["S60up","M60up","f5down4"],["f5down4"]],
+			"day":"_3"
+		},
 		"BC_S":
 		{
 			"inBC":[["devbear_all"]],
@@ -45,6 +68,12 @@
 	},
 	"Bear-Big":
 	{
+		"SC":
+		{
+			"inSC":[["Trin_NA_31"],["Trin_WDBull_33"],["Trin_WDBear_35"],["Trin_DBull_37"],["Trin_DBear_39"]],
+			"outSC":[["S40down","M40down","f5up4"],["f5up4"]],
+			"day":"3_"
+		},
 		"SP":
 		{
 			"inSP":[["TriV_NA_30"],["TriV_WDBull_32"],["TriV_WDBear_34"],["TriV_DBull_36"],["TriV_DBear_38"]],
@@ -72,6 +101,12 @@
 	},
 	"Bear-small":
 	{
+		"SC":
+		{
+			"inSC":[["Trin_NA_31"],["Trin_WDBull_33"],["Trin_WDBear_35"],["Trin_DBull_37"],["Trin_DBear_39"]],
+			"outSC":[["S40down","M40down","f5up4"],["f5up4"]],
+			"day":"3_"
+		},
 		"SP":
 		{
 			"inSP":[["TriV_NA_30"],["TriV_WDBull_32"],["TriV_WDBear_34"],["TriV_DBull_36"],["TriV_DBear_38"]],
