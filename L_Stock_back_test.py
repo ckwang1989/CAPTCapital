@@ -23,11 +23,11 @@ class sum():
         BT_sum={}
         temp=0
         filepath=os.getcwd() + os.sep + 'obj' + os.sep + name + '.pkl'
-        # if not os.path.isfile(filepath):
-        for i in [3,10]:
-            dict_r, temp=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
-            dict_r, BT_sum[i]=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
-        self.save_obj(BT_sum,test_stock)
+        if not os.path.isfile(filepath):
+            for i in [3,10]:
+                dict_r, temp=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=5, back_ornot=1, weekly_BT=0) # get weekly data_570Weeks
+                dict_r, BT_sum[i]=B.MACD_weekly_check(df,test_stock, 26, 570*i, period=1, back_ornot=1, weekly_BT=dict_r['weekly_BT']) # get daily data_570days
+            self.save_obj(BT_sum,test_stock)
         BT=self.load_obj(test_stock)
         sum().BT_combination(BT,70,test_stock) # 卡顯是勝率70以上
         print('%s BT done.'%test_stock)
