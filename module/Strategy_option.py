@@ -6,7 +6,7 @@ import datetime
 from datetime import timedelta
 from datetime import date as dt
 
-import Stock_history, Technical_index, Stock_back_test, IV_HV
+import Stock_history, Technical_index, Stock_back_test, IV_HV, earning
 from Strategy_trigger import strategy_trigger
 from condition import Condition
 import BB
@@ -98,7 +98,7 @@ def check_fail(bt_result_str):
     return days[-1]
 
 def strategy_option(stock_name):
-    keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV', 'BBlower_Close%', 'BBupper_Close%', 'last_close']
+    keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV', 'BBlower_Close%', 'BBupper_Close%', 'last_close', 'earning']
     output = {i:'' for i in keys}
     output['correlation'] = '-'.join(stock_name.split('-')[2:])
     Stock_name = stock_name.split('-')[0]
@@ -108,6 +108,7 @@ def strategy_option(stock_name):
     A=Stock_history.sum()
     B=Technical_index.sum()
     G=IV_HV.sum()
+    N=earning.sum()
     df=A.Stock_price(Stock_name)
     last_close = df[:][-1:]['Close'].values[0]
     output['last_close'] = last_close
@@ -206,4 +207,5 @@ def strategy_option(stock_name):
     BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
     output['BBupper_Close'] = 100 * (BB_dict['upper_in'] - last_close) / last_close
     output['BBlower_Close'] = 100 * (last_close - BB_dict['lower_in']) / last_close
+    output['earning'] = N.earning_get(Stock_name)
     return output

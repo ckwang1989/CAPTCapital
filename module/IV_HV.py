@@ -12,7 +12,7 @@ class sum():
         # NASD: NASDAQ
         # NYSE: NYSE 
         # https://oic.ivolatility.com/oic_options.j;jsessionid=bOxhYZXCIBEe?ticker=AMD%3ANASDAQ&R=1
-        for password in ['aQYWfTqwfNPd']:
+        for password in ['aQYWfTqwfNPd']: 
             for exchange in ['NASDAQ','NYSE','NYSEAN','NYSEArca']:
                 url = 'https://oic.ivolatility.com/oic_options.j;jsessionid=%s?ticker=%s3A%s&R=1'%(password,stock_nam+ '%',exchange)
                 try:
@@ -35,6 +35,7 @@ class sum():
                     soup = BeautifulSoup(response.content, 'html.parser')
                     check=soup.text
                     if 'IMPLIED VOLATILITY' in check:
+                        print ('IMPLIED VOLATILITY')
                         break
                     else:
                         pass
