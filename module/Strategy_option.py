@@ -98,7 +98,7 @@ def check_fail(bt_result_str):
     return days[-1]
 
 def strategy_option(stock_name):
-    keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV', 'BBlower_Close', 'BBupper_Close', 'last_close']
+    keys = ['market', 'inout', 'strategy', 'tech_id', 'stock_symbol', 'etf_symbol', 'strike', 'DTE', 'correlation', 'trigging_tech_idx', 'IV_p/IV_c/HV', 'BBlower_Close%', 'BBupper_Close%', 'last_close']
     output = {i:'' for i in keys}
     output['correlation'] = '-'.join(stock_name.split('-')[2:])
     Stock_name = stock_name.split('-')[0]
