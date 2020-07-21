@@ -286,14 +286,19 @@ class sum():
                 M40_weekly_value, M80_weekly_value, sto_weekly_value=self.dict_search(Start,weekly_BT)
             else:
                 if Start>=row_n-5 and period==1:
-                    M40_weekly_value={}
-                    M80_weekly_value={}
-                    sto_weekly_value={}
-                    for M4080 in range(0,4):
-                        M40_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[0])
-                        M80_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[1])
-                        sto_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[3])
-                elif  period==5:
+                    if len(weekly_BT)>=4:
+                        M40_weekly_value={}
+                        M80_weekly_value={}
+                        sto_weekly_value={}
+                        for M4080 in range(0,4):
+                            M40_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[0])
+                            M80_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[1])
+                            sto_weekly_value[M4080]=float(weekly_BT[len(weekly_BT)-1-M4080].split(',')[3])
+                    else:
+                        M40_weekly_value={0:0,1:0,2:0,3:0}
+                        M80_weekly_value={0:0,1:0,2:0,3:0}
+                        sto_weekly_value={0:0,1:0,2:0,3:0}
+                elif period==5:
                         M40_weekly_value=""
                         M80_weekly_value=""
                         sto_weekly_value=""
@@ -1398,8 +1403,10 @@ class sum():
         # final_result=self.operation_analysis(OSC_result_F,MACD_12_26) #daily_ok
 
         RSI_result_F=self.status_analysis(RSI_result) #daily_ok
-
-        ATR_avg_sum=[list_ATR[len(list_ATR)-1], list_ATR[len(list_ATR)-2], list_ATR[len(list_ATR)-3], list_ATR[len(list_ATR)-4]] #daily_ok
+        try:
+            ATR_avg_sum=[list_ATR[len(list_ATR)-1], list_ATR[len(list_ATR)-2], list_ATR[len(list_ATR)-3], list_ATR[len(list_ATR)-4]] #daily_ok
+        except:
+            ATR_avg_sum=[0,0,0,0]
         ATR_avg_F=self.status_analysis(ATR_avg_sum) #daily_ok
         try:
             dev_dict={'precent':Date_precent,'OSC':OSC_dev_result[len(OSC_dev_result)-1],'RSI':RSI_dev_result[len(RSI_dev_result)-1],'Sto':D_dev_result[len(D_dev_result)-1]}
@@ -1972,7 +1979,7 @@ class sum():
             result ='Bull-small_5<40' 
         elif MA_40 < MA_80 and MA_5 > MA_40:# 	
             result ='Bear-small_5>40'
-        elif MA_40 > MA_80: # 小牛
+        elif MA_40 > MA_80 or MA_40 == MA_80: # 小牛
             result ='Bull-small'
         elif MA_40 < MA_80: # 大熊
             result ='Bear-small'
