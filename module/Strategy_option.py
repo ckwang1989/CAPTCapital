@@ -14,11 +14,14 @@ import BB
 # 市場 / 策略 / 進場觸發觸發指標(key) / 股票名稱 / ETF名稱 / 履約價 / 履約日期 / 相似天數 / 觸發進場策略 / 觸發出場策略
 
 def get_date_diff(date1, date2):
-    datetimeFormat = '%Y-%m-%d %H:%M:%S.%f'
-    date1 = '{} 10:01:28.585'.format(date1)
-    date2 = '{} 09:56:28.067'.format(date2)
-    diff = datetime.datetime.strptime(date1, datetimeFormat) - datetime.datetime.strptime(date2, datetimeFormat)
-    return diff.days
+    try:
+        datetimeFormat = '%Y-%m-%d %H:%M:%S.%f'
+        date1 = '{} 10:01:28.585'.format(date1)
+        date2 = '{} 09:56:28.067'.format(date2)
+        diff = datetime.datetime.strptime(date1, datetimeFormat) - datetime.datetime.strptime(date2, datetimeFormat)
+        return diff.days
+    except:
+        return -1
 
 def get_combination_option(options_file_path, last_close, day, return_on_inves_thre=0.02):
     stock_name = options_file_path.split('/')[-1][:-4]
@@ -99,6 +102,9 @@ def strategy_option(stock_name):
     output = {i:'' for i in keys}
     output['correlation'] = '-'.join(stock_name.split('-')[2:])
     Stock_name = stock_name.split('-')[0]
+    ETF_name = stock_name.split('-')[1]
+    output['stock_symbol'] = Stock_name
+    output['etf_symbol'] = ETF_name
     A=Stock_history.sum()
     B=Technical_index.sum()
     G=IV_HV.sum()
@@ -198,7 +204,6 @@ def strategy_option(stock_name):
     output['strike'] = iv_new_price
     F = BB.sum()
     BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
-    print (BB_dict)
-    output['BBupper_Close'] = (BB_dict['upper_in'] - last_close) / last_close
-    output['BBlower_Close'] = (last_close - BB_dict['lower_in']) / last_close
-    print ('output: ', output)
+    output['BBupper_Close'] = 100 * (BB_dict['upper_in'] - last_close) / last_close
+    output['BBlower_Close'] = 100 * (last_close - BB_dict['lower_in']) / last_close
+    return output
