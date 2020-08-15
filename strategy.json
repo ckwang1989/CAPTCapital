@@ -3,42 +3,72 @@
 	{
 		"SC":
 		{
-			"inSC":[["S80up","S80down3per","f5down4"]],
-			"outSC":[["S30down"],["f5up4"]],
-			"day":"3_"
+			"inSC":[["f5down4"]],
+			"outSC":[["f5down4"]]
 		},
 		"BC":
 		{
-			"inBC":[["f40up80"]],
-			"outBC":[["f40godown","S80up"],["f40down80"]],
-			"day":"3_"
+			"inBC":[["f5up4"],["f40up80"]],
+			"outBC":[["f5up4"],["f40up80"]]
+		},
+		"SP":
+		{
+			"inSP":[["f5up4"]],
+			"outSP":[["f5up4"]]
 		}
 	},
 	"Bull-small":
 	{
 		"SC":
 		{
-			"inSC":[["S80up","S80down3per","f5down4"]],
-			"outSC":[["S30down"],["f5up4"]],
-			"day":"3_"
+			"inSC":[["f5down4"]],
+			"outSC":[["f5down4"]]
+		},
+		"BC":
+		{
+			"inBC":[["f5up4"],["f40up80"]],
+			"outBC":[["f5up4"],["f40up80"]]
+		},
+		"SP":
+		{
+			"inSP":[["f5up4"]],
+			"outSP":[["f5up4"]]
 		}
 	},
 	"Bear-Big":
 	{
 		"SP":
 		{
-			"inSP":[["S30down","Sgoup","f5up4"]],
-			"outSP":[["S70up"],["f5down4"]],
-			"day":"_3"
+			"inSP":[["f5up4"]],
+			"outSP":[["f5up4"]]
+		},
+		"BP":
+		{
+			"inBP":[["f5down4"],["f40down80"]],
+			"outBP":[["f5down4"],["f40down80"]]
+		},
+		"SC":
+		{
+			"inSC":[["f5down4"]],
+			"outSC":[["f5down4"]]
 		}
 	},
 	"Bear-small":
 	{
 		"SP":
 		{
-			"inSP":[["S30down","Sgoup","f5up4"]],
-			"outSP":[["S70up"],["f5down4"]],
-			"day":"_3"
+			"inSP":[["f5up4"]],
+			"outSP":[["f5up4"]]
+		},
+		"BP":
+		{
+			"inBP":[["f5down4"],["f40down80"]],
+			"outBP":[["f5down4"],["f40down80"]]
+		},
+		"SC":
+		{
+			"inSC":[["f5down4"]],
+			"outSC":[["f5down4"]]
 		}
 	}
 } 

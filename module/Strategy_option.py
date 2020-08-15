@@ -10,6 +10,7 @@ import Stock_history, Technical_index, Stock_back_test, IV_HV, earning
 from Strategy_trigger import strategy_trigger
 from condition import Condition
 import BB
+import time
 
 # 市場 / 策略 / 進場觸發觸發指標(key) / 股票名稱 / ETF名稱 / 履約價 / 履約日期 / 相似天數 / 觸發進場策略 / 觸發出場策略
 
@@ -109,16 +110,25 @@ def strategy_option(stock_name):
     B=Technical_index.sum()
     G=IV_HV.sum()
     N=earning.sum()
-    df=A.Stock_price(Stock_name)
+    while True:
+        df=A.Stock_price(Stock_name)
+        if len(df[:]) < 4:
+            print (f'wrong in {stock_name}.csv')
+            time.sleep(60)
+        else:
+            break
+
     last_close = df[:][-1:]['Close'].values[0]
     output['last_close'] = last_close
 
     weekly_dict, _ = B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=5, back_ornot=0, weekly_BT=0) # get weekly data_570Weeks
     daily_dict, _ = B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
-    
+    print (daily_dict)
     condition_result =  strategy_trigger(daily_dict)
+#    print ('condition_result: ', condition_result)
     output['market'] = daily_dict['latest_data_MA'][-1].split('_')[0]
     for k in condition_result.keys():
+#        print ('k: ', k)
         if condition_result[k][f'in{k[:2]}'][1]:
             output['strategy'] = k[:2]
             output['inout'] = 'in'
@@ -139,9 +149,11 @@ def strategy_option(stock_name):
 #                print ('in', condition_result[k][f'in{k[:2]}'][1])
 #                print ('out', condition_result[k][f'out{k[:2]}'][1])
 
+
     if output['strategy'] == '' or output['inout'] == 'out':
         return None
 
+    '''
     L=Stock_back_test.sum()
     L.BT(df, Stock_name)
 
@@ -186,6 +198,7 @@ def strategy_option(stock_name):
     else:
         assert False
 
+
     detla_d = get_date_diff(date, dt.today().strftime("%Y-%m-%d"))
     iv_delta_price = (pow(float(detla_d)/365, 0.5)) * last_close * float(IV['HV']['30day'])
     if 'B' in output['strategy']:
@@ -203,9 +216,12 @@ def strategy_option(stock_name):
         assert False
     output['DTE'] = DTE
     output['strike'] = iv_new_price
+    '''
     F = BB.sum()
     BB_dict=F.bollinger_bands(df, DTE=60, lookback=20, numsd=2) # price,DTE,BB中心均線(fix),內BB標準差
-    output['BBupper_Close'] = 100 * (BB_dict['upper_in'] - last_close) / last_close
-    output['BBlower_Close'] = 100 * (last_close - BB_dict['lower_in']) / last_close
+    output['BBupper_Close'] = BB_dict['upper_in']
+    output['BBlower_Close'] = BB_dict['lower_in']
+    output['BBupper_Close%'] = 100 * (BB_dict['upper_in'] - last_close) / last_close
+    output['BBlower_Close%'] = 100 * (last_close - BB_dict['lower_in']) / last_close
     output['earning'] = N.earning_get(Stock_name)
     return output

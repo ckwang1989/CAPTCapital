@@ -10,6 +10,8 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import queues
 
+result_all = []
+
 class Trader(object):
     def call(self, process_id, symbol_queues):
         while not symbol_queues.empty():
@@ -17,7 +19,9 @@ class Trader(object):
             print (f'process_id: {process_id}, symbol: {symbol}')
             output = strategy_option(symbol)
             if output:
-                to_excel([output])
+                result_all.append(output)
+            print (symbol, len(result_all))
+            to_excel(result_all)
 
 class Boss(object):
     def __init__(self, symbols):
@@ -72,3 +76,4 @@ def main():
     '''
 if __name__ == '__main__':
     main()
+    to_excel(result_all)

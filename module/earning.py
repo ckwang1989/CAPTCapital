@@ -10,12 +10,13 @@ class sum():
         #===================================================get earning date
         try:
             yec = YahooEarningsCalendar()
-            try:
+            #try:
+            if 1:
                 sec_earning=yec.get_next_earnings_date(stock_name)
                 ear=date.fromtimestamp(sec_earning).strftime("%b %d %Y")
                 ear_year=ear.split(' ')[2]
-            except:
-                ear=finviz.get_stock(stock_name)['Earnings']
+            #except:
+            #    ear=finviz.get_stock(stock_name)['Earnings']
                 
 
             ear_mon=ear.split(' ')[0]
