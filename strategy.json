@@ -64,8 +64,8 @@
 		},
 		"BC":
 		{
-			"inBP":[["bblower"]],
-			"outBP":[["bblower"]]
+			"inBC":[["bblower"]],
+			"outBC":[["bblower"]]
 		}
 	},
 	"Bear-small":
@@ -87,8 +87,8 @@
 		},
 		"BC":
 		{
-			"inBP":[["bblower"]],
-			"outBP":[["bblower"]]
+			"inBC":[["bblower"]],
+			"outBC":[["bblower"]]
 		}
 	}
 } 

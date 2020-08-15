@@ -10,23 +10,32 @@ import multiprocessing
 from multiprocessing import Process
 from multiprocessing import queues
 
-result_all = []
+import time
 
 class Trader(object):
-    def call(self, process_id, symbol_queues):
+    def call(self, process_id, symbol_queues, stock_results):
+        r = []
         while not symbol_queues.empty():
             symbol = symbol_queues.get()
             print (f'process_id: {process_id}, symbol: {symbol}')
-            output = strategy_option(symbol)
-            if output:
-                result_all.append(output)
-            print (symbol, len(result_all))
-            to_excel(result_all)
+#            try:
+            if 1:
+                output = strategy_option(symbol)
+                if output:
+#                    r.append(output)
+                    stock_results.put(output)
+
+#                print (symbol, stock_results.qsize())
+#            except:
+                print (f'thing wrong in {symbol}')
+#        result_all += r
+#        to_excel(result_all)
 
 class Boss(object):
     def __init__(self, symbols):
         self.num_worker = 4
         self.stock_queues = queues.Queue(len(symbols), ctx=multiprocessing)
+        self.stock_result = queues.Queue(len(symbols), ctx=multiprocessing)
         for symbol in symbols:
             self.stock_queues.put(symbol)
         self.workers = []
@@ -42,7 +51,7 @@ class Boss(object):
 
     def assign_task(self):
         for i in range(self.num_worker):
-            p = Process(target=self.workers[i].call, args=(i, self.stock_queues,))
+            p = Process(target=self.workers[i].call, args=(i, self.stock_queues, self.stock_result, ))
             p.start()
             p.join(timeout=0.1)
         #self.workers[0].analysis_document(0, self.stock_queues)
@@ -54,6 +63,15 @@ def main():
     boss.hire_worker()
     boss.assign_task()
     print ('completed!')
+    result_all = []
+    while not boss.stock_queues.empty():
+        time.sleep(60)
+    while not boss.stock_result.empty():
+        r = boss.stock_result.get()
+        result_all.append(r)
+        print (r)
+    to_excel(result_all)
+
 
 def get_stock_name_list(stocks_num):
     symbols = []
@@ -76,4 +94,3 @@ def main():
     '''
 if __name__ == '__main__':
     main()
-    to_excel(result_all)

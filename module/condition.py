@@ -4,12 +4,12 @@ from datetime import date as dt
 class Condition:
 #====================================MA===============================
     def bbupper(self, tech_idxes):
-        if 0.995 * tech_idxes['upper'] < tech_idxes['last_close']:
+        if 0.995 * tech_idxes['BB']['upper'] < tech_idxes['last_close']:
             return True
         else:
             return False
     def bblower(self, tech_idxes):
-        if 1.005 * tech_idxes['lower'] > tech_idxes['last_close']:
+        if 1.005 * tech_idxes['BB']['lower'] > tech_idxes['last_close']:
             return True
         else:
             return False
