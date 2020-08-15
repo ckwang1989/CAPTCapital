@@ -123,7 +123,7 @@ def strategy_option(stock_name):
 
     weekly_dict, _ = B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=5, back_ornot=0, weekly_BT=0) # get weekly data_570Weeks
     daily_dict, _ = B.MACD_weekly_check(df,Stock_name, 26, 570*1, period=1, back_ornot=0, weekly_BT=weekly_dict['weekly_BT']) # get daily data_570days
-    print (daily_dict)
+    daily_dict['last_close'] = last_close
     condition_result =  strategy_trigger(daily_dict)
 #    print ('condition_result: ', condition_result)
     output['market'] = daily_dict['latest_data_MA'][-1].split('_')[0]

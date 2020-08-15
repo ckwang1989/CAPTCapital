@@ -8,13 +8,18 @@
 		},
 		"BC":
 		{
-			"inBC":[["f5up4"],["f40up80"]],
+			"inBC":[["f40up80"]],
 			"outBC":[["f5up4"],["f40up80"]]
 		},
 		"SP":
 		{
 			"inSP":[["f5up4"]],
 			"outSP":[["f5up4"]]
+		},
+		"BP":
+		{
+			"inBP":[["bbupper"]],
+			"outBP":[["bbupper"]]
 		}
 	},
 	"Bull-small":
@@ -26,13 +31,18 @@
 		},
 		"BC":
 		{
-			"inBC":[["f5up4"],["f40up80"]],
+			"inBC":[["f40up80"]],
 			"outBC":[["f5up4"],["f40up80"]]
 		},
 		"SP":
 		{
 			"inSP":[["f5up4"]],
 			"outSP":[["f5up4"]]
+		},
+		"BP":
+		{
+			"inBP":[["bbupper"]],
+			"outBP":[["bbupper"]]
 		}
 	},
 	"Bear-Big":
@@ -44,13 +54,18 @@
 		},
 		"BP":
 		{
-			"inBP":[["f5down4"],["f40down80"]],
+			"inBP":[["f40down80"]],
 			"outBP":[["f5down4"],["f40down80"]]
 		},
 		"SC":
 		{
 			"inSC":[["f5down4"]],
 			"outSC":[["f5down4"]]
+		},
+		"BC":
+		{
+			"inBP":[["bblower"]],
+			"outBP":[["bblower"]]
 		}
 	},
 	"Bear-small":
@@ -62,13 +77,18 @@
 		},
 		"BP":
 		{
-			"inBP":[["f5down4"],["f40down80"]],
+			"inBP":[["f40down80"]],
 			"outBP":[["f5down4"],["f40down80"]]
 		},
 		"SC":
 		{
 			"inSC":[["f5down4"]],
 			"outSC":[["f5down4"]]
+		},
+		"BC":
+		{
+			"inBP":[["bblower"]],
+			"outBP":[["bblower"]]
 		}
 	}
 } 

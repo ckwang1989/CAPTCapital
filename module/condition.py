@@ -3,6 +3,17 @@ from datetime import date as dt
 
 class Condition:
 #====================================MA===============================
+    def bbupper(self, tech_idxes):
+        if 0.995 * tech_idxes['upper'] < tech_idxes['last_close']:
+            return True
+        else:
+            return False
+    def bblower(self, tech_idxes):
+        if 1.005 * tech_idxes['lower'] > tech_idxes['last_close']:
+            return True
+        else:
+            return False
+
     def f40up80(self, tech_idxes):
         # FAvg40 cross Favg80 up, bull
         if  tech_idxes['MA40_val_sum'][0]>tech_idxes['MA80_val_sum'][0] and tech_idxes['MA40_val_sum'][1]<tech_idxes['MA80_val_sum'][1]:
