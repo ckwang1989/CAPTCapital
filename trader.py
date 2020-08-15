@@ -18,18 +18,12 @@ class Trader(object):
         while not symbol_queues.empty():
             symbol = symbol_queues.get()
             print (f'process_id: {process_id}, symbol: {symbol}')
-#            try:
-            if 1:
+            try:
                 output = strategy_option(symbol)
                 if output:
-#                    r.append(output)
                     stock_results.put(output)
-
-#                print (symbol, stock_results.qsize())
-#            except:
+            except:
                 print (f'thing wrong in {symbol}')
-#        result_all += r
-#        to_excel(result_all)
 
 class Boss(object):
     def __init__(self, symbols):
