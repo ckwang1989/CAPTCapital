@@ -52,7 +52,7 @@ class Boss(object):
 
         print ('assign task finish!')
 
-def main():
+def main_multiple():
     boss = Boss(get_stock_name_list('stock_num.txt'))
     boss.hire_worker()
     boss.assign_task()
