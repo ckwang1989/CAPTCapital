@@ -8,6 +8,7 @@ from datetime import date as dt
 
 import Stock_history, Technical_index, Stock_back_test, IV_HV, earning
 from Strategy_trigger import strategy_trigger
+from common import draw_tech
 from condition import Condition
 import BB
 import time
@@ -152,6 +153,8 @@ def strategy_option(stock_name):
 
     if output['strategy'] == '' or output['inout'] == 'out':
         return None
+
+    draw_tech(df, daily_dict, Stock_name)
 
     '''
     L=Stock_back_test.sum()

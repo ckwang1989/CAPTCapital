@@ -4,7 +4,7 @@ import copy
 sys.path.insert(0, 'module')
 
 from module.Strategy_option import strategy_option
-from module.common import to_excel
+from module.common import to_excel, check_folder
 
 import multiprocessing
 from multiprocessing import Process
@@ -65,6 +65,7 @@ def main():
         result_all.append(r)
         print (r)
     to_excel(result_all)
+    
 
 
 def get_stock_name_list(stocks_num):
@@ -73,9 +74,9 @@ def get_stock_name_list(stocks_num):
         symbols.append(symbol.strip())
     return symbols
 
-'''
-def main():
+def main_single():
     stocks_num = 'stock_num.txt'
+    check_folder('plot')
     outputs = []
     for stock_name in open(stocks_num, 'r').readlines():
         stock_name = stock_name.strip()
@@ -85,6 +86,6 @@ def main():
             print (f'{output}')
             outputs.append(output)
     to_excel(outputs)
-    '''
+
 if __name__ == '__main__':
-    main()
+    main_single()
