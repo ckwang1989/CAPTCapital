@@ -139,9 +139,16 @@ def main():
         RSVs = []
         Ds = []
         ma40_old = 0.0000001
+        ma12_old = 0.0000001
+        ma26_old = 0.0000001
+        ma12_k = 1.0 / (1 + 12)
+        ma26_k = 1.0 / (1 + 26)
+
+
         ### to determine the interval that can investment ###
         ok = {'yes':[], 'no':[]}
         up_down = []
+        macd_fasts = []
         for i in range(back_max, 0, -1):
             ma40 = F.ma(df, period=40, lookback=i)
             if ma40 >= ma40_old:
@@ -150,6 +157,13 @@ def main():
                 up_down.append(0)
             if len(up_down) > 4:
                 up_down.pop(1)
+
+            close = df['Close'][len(df)-i-1]
+            ma12 = close*ma12_k + ma12_old*(1-ma12_k)
+            ma26 = close*ma26_k + ma12_old*(1-ma26_k)
+            macd_fast = ma12 - ma26
+            macd_fasts.append(macd_fast)
+
             date = str(df['Date'][len(df)-i-1]).split(' ')[0]
             #if ma40/ma40_old>=0.9998:
             if np.sum(up_down) > 3:
@@ -157,10 +171,8 @@ def main():
             else:
                 ok['no'].append(date)
             ma40_old = ma40
-
-        print (ok) 
-        df=A.Stock_price(symbol, interval='1wk')
-        for i in range(int(back_max), 0, -1):
+            ma12_old = ma12
+            ma26_old = ma26
 
             ma5 = F.ma(df, period=5, lookback=i)
             ma40 = F.ma(df, period=40, lookback=i)
@@ -204,22 +216,11 @@ def main():
 #                d[i] = {'date': dates[i], 'close': closes[i], '5down4_date': 0, 'assign': False}
 
             date = dates[i]
-            while date not in ok['yes'] and date not in ok['no']:
-                day = int(date.split('-')[-1])-1
-                if day == 0:
-                    day = 31
-                    month = int(date.split('-')[-2])-1
-                    date = date[:-5] + '%02d' % month + '-' + '%02d' % day
-                date = date[:-2] + '%02d' % day
-#                print (date)
-#                input('w')
-            investment = date in ok['yes']
-
-            if ma5s[i] > ma4s[i] and ma5s[i-1] < ma4s[i-1] and not d2['up'] and investment:
+            if ma5s[i]/ma5s[i-1]>1.00 and macd_fasts[i]/macd_fasts[i-1]>1.00 and not d2['up']:
                 d2 = {'5up4_date': dates[i], '5up4_close': closes[i], '5down4_date': 0, '5down4_close': 0, 'up': True, 'D_new': Ds[i]}
             
 #            if ma5s[i] < ma4s[i] and ma5s[i-1] > ma4s[i-1] and d2['up']:
-            if ma5s[i]/ma5s[i-1]<0.9998 and d2['up']:
+            if ma5s[i]/ma5s[i-1]<1.00 and macd_fasts[i]/macd_fasts[i-1]<1.00 and d2['up']:
                 d2['5down4_close'] = closes[i]
                 d2['5down4_date'] = dates[i]
                 d2['up'] = False
