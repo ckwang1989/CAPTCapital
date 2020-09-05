@@ -10,6 +10,8 @@ from datetime import date as dt
 
 import numpy as np
 
+import copy
+
 def get_date_diff(date1, date2):
     try:
         datetimeFormat = '%Y-%m-%d %H:%M:%S.%f'
@@ -104,6 +106,11 @@ def load(p):
         b = pickle.load(handle)
     return b
 
+def list_positive(values, i, num, slope=1):
+    result = True
+    for n in range(num):
+        result = result and ((values[i-n]/values[i-1-n]) > slope)
+    return result
 
 
 def main():
@@ -115,140 +122,195 @@ def main():
         ...}
     ''' 
     stocks = get_stock_name_list('/Users/Wiz/Desktop/wang_fund/CAPTCapital0823Bug/stock_num.txt')
+#    stocks = ['JNJ-VTI-0-18-60', 'PG-VTI-0-18-57']
 #    Stock_name = 'EBAY'
     A=Stock_history.sum()
     F=sum()
     period=20
+    all = {}
 #    '''
     for k, Stock_name in enumerate(stocks):
-        print (len(stocks) - k, Stock_name)
-        symbol = Stock_name.split('-')[0]
-        df=A.Stock_price(symbol, interval='1wk')
-        print (len(df))
-        ma5s = []
-        ma4s = []
-        ma40s = []
-        dates = []
-        closes = []
-        d = {}
-        d2 = {}
-        output = {}
-        keep_day = 90
-        K_old, D_old = 0.5, 0.5
-        back_max = 250*2 if len(df) > 250*2 else len(df)-1-40
-        RSVs = []
-        Ds = []
-        ma40_old = 0.0000001
-        ma12_old = 0.0000001
-        ma26_old = 0.0000001
-        ma12_k = 1.0 / (1 + 12)
-        ma26_k = 1.0 / (1 + 26)
+#        print (Stock_name)
+        try:
+#        if 1:
+            s = 0
+            symbol = Stock_name.split('-')[0]
+            df=A.Stock_price(symbol, interval='1wk')
+            ma5s = []
+            ma4s = []
+            ma40s = []
+            dates = []
+            closes = []
+            d = {}
+            d2 = {}
+            output = {}
+            keep_day = 90
+            K_old, D_old = 0.5, 0.5
+            back_max = 350*2 if len(df) > 350*2 else len(df)-1-40
+            RSVs = []
+            Ds = []
+            ma40_old = 0.0000001
+            ma12_old = 0.0000001
+            ma26_old = 0.0000001
+            ma12_k = 1.0 / (1 + 12)
+            ma26_k = 1.0 / (1 + 26)
 
 
-        ### to determine the interval that can investment ###
-        ok = {'yes':[], 'no':[]}
-        up_down = []
-        macd_fasts = []
-        for i in range(back_max, 0, -1):
-            ma40 = F.ma(df, period=40, lookback=i)
-            if ma40 >= ma40_old:
-                up_down.append(1)
-            else:
-                up_down.append(0)
-            if len(up_down) > 4:
-                up_down.pop(1)
-
-            close = df['Close'][len(df)-i-1]
-            ma12 = close*ma12_k + ma12_old*(1-ma12_k)
-            ma26 = close*ma26_k + ma12_old*(1-ma26_k)
-            macd_fast = ma12 - ma26
-            macd_fasts.append(macd_fast)
-
-            date = str(df['Date'][len(df)-i-1]).split(' ')[0]
-            #if ma40/ma40_old>=0.9998:
-            if np.sum(up_down) > 3:
-                ok['yes'].append(date)
-            else:
-                ok['no'].append(date)
-            ma40_old = ma40
-            ma12_old = ma12
-            ma26_old = ma26
-
-            ma5 = F.ma(df, period=5, lookback=i)
-            ma40 = F.ma(df, period=40, lookback=i)
-            RSVs = F.s(df, RSVs, period=9, lookback=i)
-            RSV = statistics.mean(RSVs)
-            K_new, D_new = F.d(df, RSV, period=9, lookback=i, K_old=K_old, D_old=D_old)
-
-            date = str(df['Date'][len(df)-i-1]).split(' ')[0]
-            
-            close = df['Close'][len(df)-i-1]
-            volume = df['Volume'][len(df)-i-1]
-#            print (date, close, ma5, ma40, RSV, K_new, D_new)
-#            input('w')
-
-            ma5s.append(ma5)
-            ma40s.append(ma40)
-            closes.append(close)
-            dates.append(date)
-#            ma5s.insert(0, ma5)
-#            ma40s.insert(0, ma40)
-#            closes.insert(0, close)
-#            dates.insert(0, date)
-
-            if len(ma5s) >= 4:
-                ma4 = statistics.mean(ma5s[-4:len(ma5s)])
-                ma4s.append(ma4)
-            else:
-                ma4s.append(0)
-#                ma4s.insert(0, ma4)
-
-            K_old, D_old = K_new, D_new
-            Ds.append(D_old)
-
-#        for i in range(len(ma5s)-len(ma4s)):
-#            ma4s.insert(0, 0)
-        d2 = {'up': False}
-        win = {'win': 0, 'loss': 0}
-        for i in range(len(ma5s)):
-#            print (dates[i], closes[i])
-#            if ma5s[i] > ma4s[i] and ma5s[i-1] < ma4s[i-1] and not d2['up'] and ma40s[i]/ma40s[i-1]>0.9998 and Ds[i] < 70:
-#                d[i] = {'date': dates[i], 'close': closes[i], '5down4_date': 0, 'assign': False}
-
-            date = dates[i]
-            if ma5s[i]/ma5s[i-1]>1.00 and macd_fasts[i]/macd_fasts[i-1]>1.00 and not d2['up']:
-                d2 = {'5up4_date': dates[i], '5up4_close': closes[i], '5down4_date': 0, '5down4_close': 0, 'up': True, 'D_new': Ds[i]}
-            
-#            if ma5s[i] < ma4s[i] and ma5s[i-1] > ma4s[i-1] and d2['up']:
-            if ma5s[i]/ma5s[i-1]<1.00 and macd_fasts[i]/macd_fasts[i-1]<1.00 and d2['up']:
-                d2['5down4_close'] = closes[i]
-                d2['5down4_date'] = dates[i]
-                d2['up'] = False
-                print (d2['5down4_close']/d2['5up4_close'], d2)
-                if d2['5down4_close']/d2['5up4_close'] >=1 :
-                    win['win'] += 1
+            ### to determine the interval that can investment ###
+            ok = {'yes':[], 'no':[]}
+            up_down = []
+            macd_fasts = []
+            ma40_rise = []
+            for i in range(back_max, 0, -1):
+                ma40 = F.ma(df, period=40, lookback=i)
+                if ma40 >= ma40_old:
+                    up_down.append(1)
                 else:
-                    win['loss'] += 1
-
-#            print (dates[i], i, i-keep_day, d.keys(), i-keep_day in d.keys())
-            '''
-            for k in d.keys():
-                index_5up4 = k
-                if d[index_5up4]['assign']:
-                    continue
-#                delta_d = abs(get_date_diff(dates[index_5up4], dates[i]))
-#                print (delta_d)
+                    up_down.append(0)
+                if len(up_down) > 4:
+                    up_down.pop(1)
                 
-                if delta_d >= 90:
-                    d[index_5up4]['keep_day_close'] = closes[i]
-                    d[index_5up4]['assign'] = True
-                    print (dates[index_5up4], d[index_5up4]['close'], d[index_5up4]['keep_day_close'])
-                    output[index_5up4] = {'date': dates[index_5up4], 'distance':  d[index_5up4]['keep_day_close'] / d[index_5up4]['close']}
-                    #del(d[index_5up4])
-                    break
-                    '''
-        print (len(stocks) - k, Stock_name, win)
-#        print (win)
-        input ('w')
+                ma40_rise.append(ma40 >= ma40_old)
+                close = df['Close'][len(df)-i-1]
+                ma12 = close*ma12_k + ma12_old*(1-ma12_k)
+                ma26 = close*ma26_k + ma26_old*(1-ma26_k)
+                macd_fast = ma12 - ma26
+                macd_fasts.append(macd_fast)
+                
+
+                date = str(df['Date'][len(df)-i-1]).split(' ')[0]
+    #            print (date, close, macd_fast, ma12, ma26)
+                #input('www')
+                #if ma40/ma40_old>=0.9998:
+                if np.sum(up_down) > 3:
+                    ok['yes'].append(date)
+                else:
+                    ok['no'].append(date)
+                ma40_old = ma40
+                ma12_old = ma12
+                ma26_old = ma26
+
+                ma5 = F.ma(df, period=5, lookback=i)
+                ma40 = F.ma(df, period=40, lookback=i)
+                RSVs = F.s(df, RSVs, period=9, lookback=i)
+                RSV = statistics.mean(RSVs)
+                K_new, D_new = F.d(df, RSV, period=9, lookback=i, K_old=K_old, D_old=D_old)
+
+                date = str(df['Date'][len(df)-i-1]).split(' ')[0]
+                
+                close = df['Close'][len(df)-i-1]
+                volume = df['Volume'][len(df)-i-1]
+    #            print (date, close, ma5, ma40, RSV, K_new, D_new)
+    #            input('w')
+
+                ma5s.append(ma5)
+                ma40s.append(ma40)
+                closes.append(close)
+                dates.append(date)
+    #            ma5s.insert(0, ma5)
+    #            ma40s.insert(0, ma40)
+    #            closes.insert(0, close)
+    #            dates.insert(0, date)
+
+                if len(ma5s) >= 4:
+                    ma4 = statistics.mean(ma5s[-4:len(ma5s)])
+                    ma4s.append(ma4)
+                else:
+                    ma4s.append(0)
+    #                ma4s.insert(0, ma4)
+
+                K_old, D_old = K_new, D_new
+                Ds.append(D_old)
+
+    #        for i in range(len(ma5s)-len(ma4s)):
+    #            ma4s.insert(0, 0)
+            d2 = {'up': False, '5up4_date':'', '5up4_close':0}
+            win = {'win': 0, 'loss': 0}
+            close_std = []
+            close_std2 = []
+            for i in range(2, len(ma5s)):
+                close_std.append(closes[i]-closes[i-1])
+                close_std2.append(closes[i-1]-closes[i-1-1])
+    #            print (closes[i]-closes[i-1], close_std, max(close_std))
+    #            max_jump = (max(close_std) == closes[i]-closes[i-1])
+                c_std = np.std(close_std)
+                c_std2 = np.std(close_std2)
+                if len(close_std) >= 4:
+                    close_std.pop(0)
+                    close_std2.pop(0)
+                
+    #            print (dates[i], closes[i])
+    #            if ma5s[i] > ma4s[i] and ma5s[i-1] < ma4s[i-1] and not d2['up'] and ma40s[i]/ma40s[i-1]>0.9998 and Ds[i] < 70:
+    #                d[i] = {'date': dates[i], 'close': closes[i], '5down4_date': 0, 'assign': False}
+
+                date = dates[i]
+                change_state_count = 0
+                if i > 12:
+                    for idx in range(i-12, i):
+                        if ma4s[idx] >= ma4s[idx-1] and ma4s[idx-1-1] >= ma4s[idx-1]:
+                            change_state_count += 1
+                        if ma4s[idx] <= ma4s[idx-1] and ma4s[idx-1-1] <= ma4s[idx-1]:
+                            change_state_count += 1
+    #            print (date, change_state_count)
+    #            if c_std > 0.8:
+    #                print (date) 
+    #            print ('date: ', date, ' ma5: ', ma5s[i], ma5s[i-1], ma5s[i-2], ' macd_fasts: ', macd_fasts[i]/macd_fasts[i-1])
+    #            print (list_positive(ma5s, i, 2), list_positive(ma40s, i, 4, 1.004), list_positive(closes, i, 3))
+    #            print (date, closes[i], closes[i]/closes[i-1])
+
+                if int(date.split('-')[0])>2009 and list_positive(ma5s, i, 2) and list_positive(ma40s, i, 4, 1.004) and list_positive(closes, i, 3) and not d2['up']:
+                    d2 = {'5up4_date': dates[i], '5up4_close': closes[i], '5down4_date': 0, '5down4_close': 0, 'up': True, 'D_new': Ds[i], 'max_jump': False, 'change_state_count': change_state_count}
+    #                if ma4s[i]/(ma4s[i-1]+0.000000000001)<1.0003:
+    #                    print ('in jump', date, ma4s[i]/(ma4s[i-1]+0.000000000001))
+    #                    d2['max_jump'] = True
+    #                print ('in', d2)
+    #            if ma5s[i] < ma4s[i] and ma5s[i-1] > ma4s[i-1] and d2['up']:
+    #            if d2['5up4_date'] != date and ((ma5s[i-1]<=ma5s[i-1-1] and ma5s[i]<=ma5s[i-1]) or (closes[i]/d2['5up4_close'])>1.1) and d2['up']:
+                if d2['5up4_date'] != date and ((closes[i-1]< closes[i] and closes[i-1-1] < closes[i-1] and closes[i] < ma4s[i]) or (closes[i]/d2['5up4_close'])>1.1) and d2['up']:
+
+                    d2['5down4_close'] = closes[i]
+                    d2['5down4_date'] = dates[i]
+                    d2['up'] = False
+                    if 1:#not d2['change_state_count'] > 1:
+    #                    print (d2['5down4_close']/d2['5up4_close'], d2)
+    #                    print ('\n')
+                        if d2['5up4_date'] in all.keys():
+                            pass
+                        else:
+                            all[d2['5up4_date']] = {} 
+                        all[d2['5up4_date']][Stock_name.split('-')[0]] = copy.deepcopy({'5down4_date': d2['5down4_date'], 'rate': d2['5down4_close']/d2['5up4_close']})
+
+                        if d2['5down4_close']/d2['5up4_close'] >=1 :
+                            s += d2['5down4_close']/d2['5up4_close']
+                            win['win'] += 1
+                        else:
+                            s -= d2['5down4_close']/d2['5up4_close']
+                            win['loss'] += 1
+                    else:
+                        print ('fail: ', d2['change_state_count'], d2['5down4_close']/d2['5up4_close'], d2)
+
+    #            print (dates[i], i, i-keep_day, d.keys(), i-keep_day in d.keys())
+                '''
+                for k in d.keys():
+                    index_5up4 = k
+                    if d[index_5up4]['assign']:
+                        continue
+    #                delta_d = abs(get_date_diff(dates[index_5up4], dates[i]))
+    #                print (delta_d)
+                    
+                    if delta_d >= 90:
+                        d[index_5up4]['keep_day_close'] = closes[i]
+                        d[index_5up4]['assign'] = True
+                        print (dates[index_5up4], d[index_5up4]['close'], d[index_5up4]['keep_day_close'])
+                        output[index_5up4] = {'date': dates[index_5up4], 'distance':  d[index_5up4]['keep_day_close'] / d[index_5up4]['close']}
+                        #del(d[index_5up4])
+                        break
+                        '''
+            print (s, (s-(win['win']-win['loss']))/(win['win']+win['loss']), win)
+            print (all)
+    #        print (win)
+    #        input ('w')
+        except:
+            print ('fail', Stock_name)
 if __name__ == '__main__':
     main()
