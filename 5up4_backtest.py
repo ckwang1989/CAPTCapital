@@ -11,6 +11,7 @@ from datetime import date as dt
 import numpy as np
 
 import copy
+import pandas as pd
 
 def get_date_diff(date1, date2):
     try:
@@ -128,8 +129,10 @@ def main():
     F=sum()
     period=20
     all = {}
+    rates = {}
 #    '''
     for k, Stock_name in enumerate(stocks):
+        rates[Stock_name] = 0
 #        print (Stock_name)
         try:
 #        if 1:
@@ -272,13 +275,13 @@ def main():
                     d2['5down4_date'] = dates[i]
                     d2['up'] = False
                     if 1:#not d2['change_state_count'] > 1:
-    #                    print (d2['5down4_close']/d2['5up4_close'], d2)
+                        print ('\t\t', d2['5down4_close']/d2['5up4_close'], d2)
     #                    print ('\n')
                         if d2['5up4_date'] in all.keys():
                             pass
                         else:
-                            all[d2['5up4_date']] = {} 
-                        all[d2['5up4_date']][Stock_name.split('-')[0]] = copy.deepcopy({'5down4_date': d2['5down4_date'], 'rate': d2['5down4_close']/d2['5up4_close']})
+                            all[d2['5up4_date']] = []
+                        all[d2['5up4_date']].append(copy.deepcopy({'Stock_name': Stock_name.split('/')[0], '5up4_date': d2['5up4_date'], '5down4_date': d2['5down4_date'], 'rate': d2['5down4_close']/d2['5up4_close'], 'rate_average': rates[Stock_name]}))
 
                         if d2['5down4_close']/d2['5up4_close'] >=1 :
                             s += d2['5down4_close']/d2['5up4_close']
@@ -306,11 +309,31 @@ def main():
                         #del(d[index_5up4])
                         break
                         '''
-            print (s, (s-(win['win']-win['loss']))/(win['win']+win['loss']), win)
-            print (all)
+            print (Stock_name, s, (s-(win['win']-win['loss']))/(win['win']+win['loss']), win)
+            rates[Stock_name] = {'rate_average': (s-(win['win']-win['loss']))/(win['win']+win['loss']), 'win': win['win'], 'loss':win['loss']}
+            #print (all)
+#            to_excel(all, rates, excel_p='result.xlsx')
     #        print (win)
     #        input ('w')
+
         except:
             print ('fail', Stock_name)
+    to_excel(all, rates, excel_p='result.xlsx')
+
+def to_excel(outputs, rates, excel_p='result.xlsx'):
+#        input:
+#            outputs: [{'k1': v1, 'k2': v2....}, {'k1': v1, 'k2': v2....} ...]
+#        output:
+#            excel_file
+    o = []
+    for k in outputs.keys():
+        o += outputs[k]
+    for v in o:
+        v['rate_average'] = rates[v['Stock_name']]['rate_average']
+        v['win'] = rates[v['Stock_name']]['win']
+        v['loss'] = rates[v['Stock_name']]['loss']
+    df = pd.DataFrame(o)
+    df.to_excel(excel_p)
+
 if __name__ == '__main__':
     main()
