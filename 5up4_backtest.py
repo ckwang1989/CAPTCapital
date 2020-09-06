@@ -149,7 +149,7 @@ def main():
             output = {}
             keep_day = 90
             K_old, D_old = 0.5, 0.5
-            back_max = 350*2 if len(df) > 350*2 else len(df)-1-40
+            back_max = 700*2 if len(df) > 700*2 else len(df)-1-40
             RSVs = []
             Ds = []
             ma40_old = 0.0000001
@@ -261,7 +261,7 @@ def main():
     #            print (list_positive(ma5s, i, 2), list_positive(ma40s, i, 4, 1.004), list_positive(closes, i, 3))
     #            print (date, closes[i], closes[i]/closes[i-1])
 
-                if int(date.split('-')[0])>2009 and list_positive(ma5s, i, 2) and list_positive(ma40s, i, 4, 1.004) and list_positive(closes, i, 3) and not d2['up']:
+                if list_positive(ma5s, i, 2) and list_positive(ma40s, i, 4, 1.004) and list_positive(closes, i, 3) and not d2['up']:
                     d2 = {'5up4_date': dates[i], '5up4_close': closes[i], '5down4_date': 0, '5down4_close': 0, 'up': True, 'D_new': Ds[i], 'max_jump': False, 'change_state_count': change_state_count}
     #                if ma4s[i]/(ma4s[i-1]+0.000000000001)<1.0003:
     #                    print ('in jump', date, ma4s[i]/(ma4s[i-1]+0.000000000001))
@@ -312,13 +312,13 @@ def main():
             print (Stock_name, s, (s-(win['win']-win['loss']))/(win['win']+win['loss']), win)
             rates[Stock_name] = {'rate_average': (s-(win['win']-win['loss']))/(win['win']+win['loss']), 'win': win['win'], 'loss':win['loss']}
             #print (all)
-#            to_excel(all, rates, excel_p='result.xlsx')
+            to_excel(all, rates, excel_p='result_all.xlsx')
     #        print (win)
     #        input ('w')
 
         except:
             print ('fail', Stock_name)
-    to_excel(all, rates, excel_p='result.xlsx')
+#    to_excel(all, rates, excel_p='result.xlsx')
 
 def to_excel(outputs, rates, excel_p='result.xlsx'):
 #        input:
