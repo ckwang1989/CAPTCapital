@@ -25,20 +25,44 @@ def Stock_price(stock_TW, interval):
     df.to_csv(filepath, index='Date')
     return df
 
+def get_grownth_list(symbol, acc_num=12):
+    grownth_list = []
+    df = Stock_price(symbol, interval='1mo')
+    i  = 1
+    data_last, close_last = -1, -1
+    if len(df.to_dict('list')['Adj Close']) < acc_num+4+1:
+        return None
+    while len(grownth_list) < acc_num:
+        close = df.to_dict('list')['Adj Close'][-i]
+        date = df.to_dict('list')['Date'][-i].date()
+        if str(close) == 'nan':
+            i += 1
+            continue
+        if close_last != -1:
+            grownth_list.append(close_last/float(close))
+#        print (date, close)
+        i += 1
+        data_last, close_last = date, close
+    return grownth_list
+
+def compare(a, b):
+    # a: target
+    # b: spy
+    return [a[i] > b[i] for i in range(len(a))]
+
 def main():
     symbols = get_symbols(csv_p='result.csv')
+    spy_grownth_list = get_grownth_list('spy')
     for symbol in symbols:
-        print ('symbol: ', symbol)
-        df = Stock_price(symbol, interval='1mo')
-        i  = 1
-        while i < 24:
-            close = df.to_dict('list')['Adj Close'][-i]
-            date = df.to_dict('list')['Date'][-i].date()
-            if str(close) == 'nan':
-                i += 1
-                continue
-            print (date, close)
-            i += 1
-        input('w')
+        print (symbol)
+        if symbol[:1] not in ['T', 'U', 'V', 'W', 'X', 'Y', 'Z']:
+            continue
+        target_grownth_list = get_grownth_list(symbol)
+        if not target_grownth_list:
+            continue
+        grown_acc = sum(compare(target_grownth_list, spy_grownth_list))
+        if grown_acc >= 10:
+            print ('symbol: ', symbol, grown_acc)
+#        input('w')
 if __name__ == '__main__':
     main()
