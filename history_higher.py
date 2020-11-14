@@ -11,6 +11,8 @@ import copy
 sys.path.insert(0, 'module')
 from module.common import to_excel
 
+from datetime import datetime, date
+
 def get_stock_name_list(stocks_num):
     symbols = []
     for symbol in open(stocks_num, 'r').readlines():
@@ -280,7 +282,29 @@ def main4():
             print (date, len(results['all']), len(list(symbol_pool_now.intersection(symbol_pool_previous))))
         date_last = date
 
+def get_weekday(date_string):
+    return datetime.strptime(date_string, "%Y-%m-%d").weekday()+1
+
+def get_datetime_diff(date1_string, date2_string):
+    return (datetime.strptime(date1_string, "%Y-%m-%d") - datetime.strptime(date2_string, "%Y-%m-%d")).days
+
+def get_dayshift_string(date_string, shift_days):
+    import datetime
+    from datetime import datetime as dt
+    return str(dt.strptime(date_string, "%Y-%m-%d") + datetime.timedelta(days = shift_days))[:len('2020-10-10')]
+
+def get_history_data(df, date, typ):
+    for i in range(len(df)):
+        if '-' not in df['Date'][i]: continue
+        if get_datetime_diff(date, df['Date'][i]) < 0: return df[typ][i]
+        if date == df['Date'][i]:
+            return df[typ][i]
+
+
 def main5():
+    stock_history = Stock_history.sum()
+    stop_business_dates = ['2019-01-01', '2019-01-21', '2019-02-18', '2019-04-19', '2019-05-27', '2019-07-04', '2019-09-02', '2019-11-28', '2019-12-25', \
+                            '2020-01-01', '2020-01-20', '2020-02-17', '2020-04-09', '2020-04-10', '2020-05-22', '2020-05-25', '2020-07-03', '2020-07-04', '2020-09-07', '2020-10-12', '2020-11-11', '2020-11-26', '2020-11-27', '2020-12-24', '2020-12-25', '2020-12-31']
     p = '/Users/Wiz/Desktop/wang_fund/CAPTCapital_1016/CAPTCapital/history_highest.pkl'
     hhs = load(p)
     hh_symbol_dates = {}
@@ -318,12 +342,75 @@ def main5():
         if hottests_all.count(hottests_date) > 230:
             print (f'{hottests_date}: {hottests_all.count(hottests_date)}')
 
-    for symbol in ['AMD', 'INFO']:
-        print (symbol)
-        print ('hh_symbol_dates: ', sorted(hh_symbol_dates[symbol]))
-        print ('bb_symbol_dates: ', sorted(bb_symbol_dates[symbol]))
-        print ('hh_symbol_dates & bb_symbol_dates: ', sorted(list(set(hh_symbol_dates[symbol])&set(bb_symbol_dates[symbol]))))
-        print ('\n\n')
+#    for i_row, row in enumerate(finviz_screener_page):
+#        symbol = row['Ticker']
+
+    for symbol in ['AMD', 'AAPL', 'NIO', 'TWOU', 'TDOC', 'INFO', 'FB', 'XLNX', 'RVLV', 'ISRG']:
+#    finviz_screener_page = load('/Users/Wiz/Desktop/wang_fund/Shield_1011/Shield/fizviz_screener.pkl')
+#    for i_row, row in enumerate(finviz_screener_page):
+#        symbol = row['Ticker']
+
+        df = stock_history.Stock_price(symbol, from_yf=False)
+
+        if symbol not in hh_symbol_dates.keys() or symbol not in bb_symbol_dates.keys(): continue
+        merge_dates = sorted(list(set(hh_symbol_dates[symbol])&set(bb_symbol_dates[symbol])))
+#        if '2020-11-12' in merge_dates or '2020-11-13' in merge_dates:
+#            print (symbol, get_datetime_diff('2020-11-14', '2020-11-12'))
+#            print ('hh_symbol_dates: ', sorted(hh_symbol_dates[symbol]))
+#            print ('bb_symbol_dates: ', sorted(bb_symbol_dates[symbol]))
+#            print ('hh_symbol_dates & bb_symbol_dates: ', sorted(merge_dates))
+#            print ('\n\n')
+#            input('wait')
+
+#        dates = [2020-10-11, 2020-10-12, 2020-10-15, 2020-10-16, 2020-10-17, 2020-10-26, 2020-10-27, 2020-10-31]
+        dates = merge_dates
+        shift_days = 2
+        group = []
+        for i_date, date in enumerate(dates):
+#            print ('i_date: ', i_date)
+            # first element in groups
+            start_date = date
+            if i_date == 0:
+                while True:
+                    start_date = get_dayshift_string(start_date, 1)
+#                    print (get_weekday(start_date))
+                    if get_weekday(start_date) not in [6, 7] or get_datetime_diff(start_date, date): break
+                start_price = get_history_data(df, start_date, typ='Close')
+                group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
+#                print (group)
+#                input('w')
+                continue 
+                
+            # second... element in groups
+            #                    2020-10-05(2)  2020-10-01(5)
+            shift_days_plus = 2 if get_weekday(dates[i_date]) < get_weekday(dates[i_date-1]) else 0
+            if get_datetime_diff(dates[i_date], dates[i_date-1]) > shift_days+shift_days_plus: # if so far between last element -> end the group
+                end_date = get_dayshift_string(dates[i_date-1], shift_days+1)
+                end_price = get_history_data(df, end_date, typ='Open')
+                group[-1]['end_date'] = end_date
+                group[-1]['end_price'] = end_price
+
+                while True:
+                    start_date = get_dayshift_string(start_date, 1)
+#                    print (get_weekday(start_date))
+                    if get_weekday(start_date) not in [6, 7]: break
+                start_price = get_history_data(df, start_date, typ='Close')
+                group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
+            else:  # if close
+                pass
+            
+            # last element in group
+            if i_date == len(dates)-1:
+                if get_datetime_diff('2020-11-13', date) < 3:
+                    group.pop()
+                else:
+                    end_date = get_dayshift_string(date, shift_days+1)
+                    end_price = get_history_data(df, end_date, typ='Open')
+                    group[-1]['end'] = end_date
+                    group[-1]['end_open'] = end_price
+#            print ('group: ', group, dates[i_date], dates[i_date-1], get_datetime_diff(dates[i_date], dates[i_date-1]))
+#            input('w')
+        print ('symbol: ', symbol, group)
 
 if __name__ == '__main__':
 #    main3()
