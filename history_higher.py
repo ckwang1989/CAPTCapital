@@ -291,7 +291,7 @@ def main5():
 #    print (hh_symbol_dates)
 
 
-    p = '/Users/Wiz/Desktop/wang_fund/CAPTCapital_1016/CAPTCapital/all.pkl'
+    p = '/Users/Wiz/Desktop/wang_fund/CAPTCapital_1016/CAPTCapital/bb.pkl'
     bbs = load(p) 
     bb_symbol_dates = {}
     
@@ -318,8 +318,12 @@ def main5():
         if hottests_all.count(hottests_date) > 230:
             print (f'{hottests_date}: {hottests_all.count(hottests_date)}')
 
-    print ('hh_symbol_dates: ', sorted(hh_symbol_dates['AMD']))
-    print ('bb_symbol_dates: ', sorted(bb_symbol_dates['AMD'])) 
+    for symbol in ['AMD', 'INFO']:
+        print (symbol)
+        print ('hh_symbol_dates: ', sorted(hh_symbol_dates[symbol]))
+        print ('bb_symbol_dates: ', sorted(bb_symbol_dates[symbol]))
+        print ('hh_symbol_dates & bb_symbol_dates: ', sorted(list(set(hh_symbol_dates[symbol])&set(bb_symbol_dates[symbol]))))
+        print ('\n\n')
 
 if __name__ == '__main__':
 #    main3()
