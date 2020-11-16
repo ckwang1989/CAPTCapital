@@ -225,17 +225,17 @@ def main3():
                 symbol = row['Ticker']
                 df = stock_history.Stock_price(symbol, from_yf=False)
                 for i in range(len(df)-period):
-                    if i > 250*1:
+                    if i > 250*10:
                         break
                     upper_in, lower_in, close, date = bollinger_bands.bollinger_bands(df, period=period, lookback=i, numsd=2, return_close=True)
-                    if close > upper_in*0.98:
+                    if close >= upper_in: #*0.98:
                         row['Date']=date
                         outputs.append(copy.deepcopy(row))
 
                 print (i_row, symbol, len(outputs), ' last: ', len(finviz_screener_page)-i_row)
         except:
             print (f'{symbol} is fail')
-    save(f'bb.pkl', outputs)
+    save(f'bb_1.pkl', outputs)
 #    print (outputs)
 # bb
 # bb and Country

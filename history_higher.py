@@ -315,7 +315,7 @@ def main5():
 #    print (hh_symbol_dates)
 
 
-    p = '/Users/Wiz/Desktop/wang_fund/CAPTCapital_1016/CAPTCapital/bb.pkl'
+    p = '/Users/Wiz/Desktop/wang_fund/CAPTCapital_1016/CAPTCapital/bb_1.pkl'
     bbs = load(p) 
     bb_symbol_dates = {}
     
@@ -354,17 +354,18 @@ def main5():
 
         if symbol not in hh_symbol_dates.keys() or symbol not in bb_symbol_dates.keys(): continue
         merge_dates = sorted(list(set(hh_symbol_dates[symbol])&set(bb_symbol_dates[symbol])))
+        if 1:
 #        if '2020-11-12' in merge_dates or '2020-11-13' in merge_dates:
 #            print (symbol, get_datetime_diff('2020-11-14', '2020-11-12'))
-#            print ('hh_symbol_dates: ', sorted(hh_symbol_dates[symbol]))
-#            print ('bb_symbol_dates: ', sorted(bb_symbol_dates[symbol]))
-#            print ('hh_symbol_dates & bb_symbol_dates: ', sorted(merge_dates))
+            print ('hh_symbol_dates: ', sorted(hh_symbol_dates[symbol]))
+            print ('bb_symbol_dates: ', sorted(bb_symbol_dates[symbol]))
+            print ('hh_symbol_dates & bb_symbol_dates: ', sorted(merge_dates))
 #            print ('\n\n')
 #            input('wait')
 
 #        dates = [2020-10-11, 2020-10-12, 2020-10-15, 2020-10-16, 2020-10-17, 2020-10-26, 2020-10-27, 2020-10-31]
         dates = merge_dates
-        shift_days = 2
+        shift_days = 3
         group = []
         for i_date, date in enumerate(dates):
 #            print ('i_date: ', i_date)
@@ -374,7 +375,7 @@ def main5():
                 while True:
                     start_date = get_dayshift_string(start_date, 1)
 #                    print (get_weekday(start_date))
-                    if get_weekday(start_date) not in [6, 7] or get_datetime_diff(start_date, date): break
+                    if get_weekday(start_date) not in [6, 7]: break
                 start_price = get_history_data(df, start_date, typ='Close')
                 group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
 #                print (group)
@@ -411,6 +412,7 @@ def main5():
 #            print ('group: ', group, dates[i_date], dates[i_date-1], get_datetime_diff(dates[i_date], dates[i_date-1]))
 #            input('w')
         print ('symbol: ', symbol, group)
+        input('w')
 
 if __name__ == '__main__':
 #    main3()
