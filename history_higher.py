@@ -371,34 +371,65 @@ def main5():
 #            print ('i_date: ', i_date)
             # first element in groups
             start_date = date
-            if i_date == 0:
+            if len(group) == 0:
                 while True:
                     start_date = get_dayshift_string(start_date, 1)
-#                    print (get_weekday(start_date))
                     if get_weekday(start_date) not in [6, 7]: break
                 start_price = get_history_data(df, start_date, typ='Close')
                 group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
-#                print (group)
-#                input('w')
-                continue 
+            else:
+                if get_datetime_diff(date, group[-1]['end_date']) < 0: continue
+                while True:
+                    start_date = get_dayshift_string(start_date, 1)
+                    if get_weekday(start_date) not in [6, 7]: break
+                start_price = get_history_data(df, start_date, typ='Close')
+                group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
                 
             # second... element in groups
             #                    2020-10-05(2)  2020-10-01(5)
-            shift_days_plus = 2 if get_weekday(dates[i_date]) < get_weekday(dates[i_date-1]) else 0
-            if get_datetime_diff(dates[i_date], dates[i_date-1]) > shift_days+shift_days_plus: # if so far between last element -> end the group
-                end_date = get_dayshift_string(dates[i_date-1], shift_days+1)
-                end_price = get_history_data(df, end_date, typ='Open')
-                group[-1]['end_date'] = end_date
-                group[-1]['end_price'] = end_price
+            # if meet Saturday or Sunday
+#            # v1
+#            shift_days_plus = 2 if get_weekday(dates[i_date]) < get_weekday(dates[i_date-1]) else 0
+#            if get_datetime_diff(dates[i_date], dates[i_date-1]) > shift_days+shift_days_plus: # if so far between last element -> end the group
+#                end_date = get_dayshift_string(dates[i_date-1], shift_days+1)
+#                end_price = get_history_data(df, end_date, typ='Open')
+#                group[-1]['end_date'] = end_date
+#                group[-1]['end_price'] = end_price
 
+            # v2 
+            drop_value_fail_threshold = 0.02
+            rise_value_threshold = 0.08
+            date_now = start_date
+            close_now = get_history_data(df, date_now, typ='Close')
+
+            date_now = get_dayshift_string(date_now, 1)
+            while True:
+                shift_count = 0
                 while True:
-                    start_date = get_dayshift_string(start_date, 1)
-#                    print (get_weekday(start_date))
-                    if get_weekday(start_date) not in [6, 7]: break
-                start_price = get_history_data(df, start_date, typ='Close')
-                group.append(copy.deepcopy({'start_date': start_date, 'start_price': start_price}))
-            else:  # if close
-                pass
+                    date_last = get_dayshift_string(date_now, -(1+shift_count))
+#                    print (date_now, date_last)
+                    if get_weekday(date_last) not in [6, 7]: break
+                    shift_count += 1
+                close_last = get_history_data(df, date_last, typ='Close')
+                if close_now < close_last * (1 - drop_value_fail_threshold) or \
+                    close_now < group[-1]['start_price'] * (1 - drop_value_fail_threshold) or \
+                    close_now > group[-1]['start_price'] * (1 + rise_value_threshold):
+#                    print (date_now, date_last)
+#                    print (close_now, close_last * (1 - drop_value_fail_threshold))
+#                    print (close_now < close_last * (1 - drop_value_fail_threshold))
+#                    print (close_now < group[-1]['start_price'] * (1 - drop_value_fail_threshold))
+                    break
+                while True:
+                    date_now = get_dayshift_string(date_now, 1)
+                    if get_weekday(date_now) not in [6, 7]: break
+                close_now = get_history_data(df, date_now, typ='Close')
+
+            date_next = get_dayshift_string(date_now, 1)
+            open_next = get_history_data(df, date_next, typ='Open')
+
+            group[-1]['end_date'] = date_next
+            group[-1]['end_price'] = open_next
+
             
             # last element in group
             if i_date == len(dates)-1:
